@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | CafeBooth</title>
+    <link rel="stylesheet" href="Login-styles.css">
+    <script src="Login-script.js" defer></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="login-form">
+            <h2>Log into Cafe Booth</h2>
+            <p class="subtext">Sign in to continue</p>
+            
+            <div class="input-group">
+                <input type="text"  class="loginUsername" id="loginUsername" placeholder="Email or Username" required>
+            </div>
+
+            <div class="input-group password-container">
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <span class="toggle-password" onclick="togglePassword('loginPassword')">👁</span>
+            </div>
+
+            <button class="login-btn" onclick="loginUser()">Login</button>
+
+            <p class="forgot-password"><a href="#">Forgot password?</a></p>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <a href="http://localhost:5000/auth/google" class="google-login-btn">
+                <img src="https://th.bing.com/th/id/R.76da3f5249d24e17d244c2dbb66d8f19?rik=VpZq2dw%2bk075hQ&pid=ImgRaw&r=0" alt="Google Logo"> Login with Google
+            </a>
+
+            <p class="register-text">Don't have an account? <a href="register.html">Register here</a></p>
+        </div>
+    </div>
+</body>
+</html>

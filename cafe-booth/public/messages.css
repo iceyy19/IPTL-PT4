@@ -1,0 +1,234 @@
+
+:root {
+    --primary-color: #8B5E3B;
+    --secondary-color: #FFF8E1;
+    --accent-color: #D2B48C;
+    --text-color: #3E2723;
+    --background-color: #FAF3E0;
+}
+
+
+:root {
+    --primary-color: #8B5E3B;
+    --secondary-color: #FFF8E1;
+    --accent-color: #D2B48C;
+    --text-color: #3E2723;
+    --background-color: #FAF3E0;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #000; 
+    color: #fff; 
+    background-image: url('https://wallpaperaccess.com/full/1076709.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  .logo {
+    position: absolute;
+    left: 5.3%;
+  }
+  
+  .nav{
+    margin-left: 42%;
+  }
+  
+  .login{
+    margin-left: 33.8%;
+  }
+  
+  header .logo h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+  }
+  
+  header .nav a, .login a {
+    color: #fff;
+    margin: 0 15px;
+    text-decoration: none;
+    font-size: 1rem;
+  }
+  
+  header .login a {
+    font-size: 1.1rem;
+  }
+  
+  header .nav, .login {
+    margin-top: .5%;
+  }
+  
+  header .nav a:hover, .login a:hover {
+    color: #f0a400; /* Goldish brown hover color */
+  }
+
+  
+  header {
+    background: linear-gradient(135deg, #3b2f2f, #6e4b3d); 
+    color: #fff;
+    padding: 20px 0;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(37, 37, 37, 0.901);
+}
+
+.chat-container {
+    width: 100%;
+    padding: 0px 20px 20px 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    background: #6e4b3d77; 
+    display: flex;
+    justify-content: center;  /* Horizontally center */
+    align-items: center; 
+    flex-direction: column;
+}
+
+.chat-container h2 {
+    font-size: 1.5em;
+    color: #ededed;
+    margin-bottom: 15px;
+    text-align: center;
+    margin-right: 20px;
+}
+
+.chat-box {
+    height: 558px;
+    width: 50%;
+    overflow-y: auto;
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #000000;
+    background: #8d6752;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-box .coffee-image {
+    margin: 8% 0 8% 24%;
+    display: block;
+    max-width: 50%;
+    max-height: auto;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.chat-box .coffee-image.hidden {
+    display: none;
+}
+
+.chat-input {
+    width: 50%;
+    height: 24px;
+    padding: 12px;
+    margin-top: 15px;
+    border: 2px solid #8d6752;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: #8d6752;
+}
+
+.chat-input::placeholder {
+    color: black;
+}
+
+.chat-box p {
+    margin: 0;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 100%;
+    word-wrap: break-word;
+    display: inline-block;
+}
+
+.chat-box .user-msg {
+    background-color: #D2B48C; /* Light brown for user */
+    align-self: flex-end; /* Align to the right */
+    border-radius: 15px 15px 0 15px;
+    text-align: end ;
+}
+
+.chat-box .coffee-msg {
+    color: rgb(222, 222, 222);
+    align-self: flex-start;
+    border-radius: 15px 15px 15px 0;
+    text-align: start;
+}
+
+.chat-input {
+    width: 50%;
+    height: 24px;
+    padding: 12px;
+    margin-top: 15px;
+    border: 2px solid #8d6752;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: #8d6752;
+}
+
+.chat-input::placeholder {
+    color: black; /* Change placeholder color to black */
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #8B5E3B;
+}
+
+.chat-box {
+    overflow-y: auto; /* Enable scrolling */
+    scrollbar-width: thin; /* For Firefox */
+}
+
+.chat-box::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background-color: #8B5E3B;
+    border-radius: 5px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background-color: #8d6752; /* Same background as the chatbox */
+}
+
+.button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.button:hover {
+    background-color: var(--accent-color);
+}
+.footer {
+    position: absolute;
+    bottom: 1;
+    width: 100%;
+    background: linear-gradient(135deg, #3b2f2f, #6e4b3d); /* Brown gradient for header and footer */
+    color: #fff;
+    padding: 15px 0;
+    text-align: center;
+  }

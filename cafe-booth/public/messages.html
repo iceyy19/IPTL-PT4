@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CafeBooth</title>
+    <link rel="stylesheet" href="messages.css"> <!-- Link to external CSS -->
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>CafeStory</h1>
+        </div>
+        <nav class="nav">
+            <a href="Index.html">Home</a>
+            <a href="messages.html">Messages</a>
+            <a href="#">Profile</a>
+        </nav>
+        <div class="login">
+            <a href="#">Login</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="chat-container">
+            <h2>Chat with CoffeeBot</h2>
+            <div class="chat-box" id="chat-box">
+                <img src="CoffeeSleeping2.png" alt="Coffee" class="coffee-image" id="coffee-image">
+            </div>
+            <input type="text" class="chat-input" id="chat-input" placeholder="Ask about coffee..." onkeypress="handleChat(event)">
+        </div>
+    </div>
+
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 CafeStory</p>
+    </footer>
+
+    <script>
+        let responses = [];
+        let previousQuestion = '';
+        let previousResponse = '';
+
+        //fetching responses data
+        fetch('responses.json') 
+            .then(response => response.json()) 
+            .then(data => {
+                responses = data; 
+            })
+            .catch(error => console.error('Error loading responses:', error));
+
+            //Handling Chatbot System
+            function handleChat(event) {
+                const chatBox = document.getElementById("chat-box");
+                const coffeeImage = document.getElementById("coffee-image");
+
+                //If enter is clicked?
+                if (event.key === "Enter") {
+                    const input = document.getElementById("chat-input").value.toLowerCase().trim();
+                    let response = responses[responses.length - 1].response;
+
+                    if (input === "") {
+                        return; 
+                    }
+
+                    coffeeImage.classList.add("hidden");
+
+                    //Iterating all of the keyword in responses.json to get the response needed
+                    for (let i = 0; i < responses.length - 1; i++) { // Skip the default response
+                        const { keywords, response: r } = responses[i];
+                        if (keywords.every(keyword => input.includes(keyword))) {
+                            response = r;
+                            break;
+                        }
+                    }
+
+                    if (previousResponse === "Ciao! I'm here to help with coffee! Ask me anything about brewing, beans, or techniques.") {
+                        response = "Ciao!! :)";
+                        previousResponse = response;
+                    } else {
+                        if (response === previousResponse) {
+                        response = "Please read the previous message."; // If they match, show this message
+                        } else {
+                            previousResponse = response; // Else, use the current response
+                        }
+                    }
+
+
+                    chatBox.innerHTML += `<p class="user-msg"><strong>You:</strong> ${input}</p>`;
+
+                    chatBox.innerHTML += `<p class="coffee-msg"><strong style="color: rgb(55, 29, 29);">CoffeeBot:</strong> ${response.replace(/\n/g, "<br>")}</p>`;
+
+                    document.getElementById("chat-input").value = "";
+
+                    const coffeeBotMsg = chatBox.querySelector(".coffee-msg p");
+                    let i = 0;
+                    function typeWriter() {
+                        if (i < response.length) {
+                            coffeeBotMsg.innerHTML += response.charAt(i);
+                            i++;
+                            setTimeout(typeWriter, 100); // Delay between each character
+                        }
+                    }
+
+                    typeWriter();
+
+                    //Scrollbar Design
+                    chatBox.style.scrollbarColor = "#6e4b3d #8d6752"; 
+                    chatBox.style.scrollbarWidth = "8px"; 
+                    chatBox.scrollTop = chatBox.scrollHeight;  
+
+                    previousQuestion = input;
+                }
+            }
+
+    </script>
+</body>
+</html>

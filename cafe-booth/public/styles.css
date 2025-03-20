@@ -1,0 +1,825 @@
+/* General Styling */
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #000; 
+  color: #fff; 
+  background-image: url('https://wallpaperaccess.com/full/1076709.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+header {
+  background: linear-gradient(135deg, #3b2f2f, #6e4b3d); /* Brown gradient for header and footer */
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+}
+
+.logo {
+  position: absolute;
+  left: 5.3%;
+}
+
+.nav{
+  margin-left: 42%;
+}
+
+.logout{
+  margin-left: 33.8%;
+}
+
+header .logo h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+header .nav a, .logout a {
+  color: #fff;
+  margin: 0 15px;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+header .logout a {
+  font-size: 1.1rem;
+}
+
+header .nav, .logout {
+  margin-top: .5%;
+}
+
+header .nav a:hover, .logout a:hover {
+  color: #f0a400; /* Goldish brown hover color */
+}
+
+.stories-wrapper {
+  position: relative; /* Required for absolute positioning of buttons */
+  width: 88.4%;
+  margin-left: 5.2%;
+  margin-top: 20px;
+}
+
+.stories-container {
+  width: 88.4%;
+  border-radius: 12px;
+  display: flex;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  white-space: nowrap; /* Prevent stories from wrapping */
+  padding: 10px;
+  margin-left: 5.2%;
+  background-color: rgba(44, 44, 44, 0.485);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin-top: 20px;
+  margin-bottom: -2.5%;
+  position: relative;
+  scroll-behavior: smooth; /* Smooth scrolling */
+}
+
+/* Gradient overlay to hide off-screen stories */
+.stories-container::before,
+.stories-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50px; /* Width of the gradient overlay */
+  z-index: 2;
+  pointer-events: none; /* Allow clicks to pass through */
+}
+
+.stories-container::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+}
+
+.stories-container::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+}
+
+.story {
+  width: 150px; /* Fixed width for each story */
+  height: 260px; /* Fixed height for each story */
+  margin: 0 10px; /* Margin between stories */
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6e4b3d, #3b2f2f);
+  display: inline-block; /* Display stories inline */
+  flex: 0 0 auto; /* Prevent flex items from shrinking */
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.story:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.story {
+  width: 150px; /* Increased size for story containers */
+  height: 260px; /* Increased height to match the new size */
+  margin: 0px 10px 0px 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6e4b3d, #3b2f2f); /* Brown gradient for the story card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.story:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.story img, .story video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story .add-story {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #8d6e63; /* Lighter brown for the add story button */
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.story .add-story:hover {
+  background-color: #5f4b41; /* Darker brown for hover effect */
+}
+
+.upload-container {
+  position: relative;
+  padding: 30px;
+  margin: 40px auto;
+  width: 86%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  border-radius: 12px;
+  overflow: hidden;
+  background-image: url('https://media.discordapp.net/attachments/1076145702314455251/1335663326121693317/nathan-dumlao-vbt-Fp3b5FA-unsplash-scaled.png?ex=67a0fce8&is=679fab68&hm=1f5d7e02b27eb110c3d134261d52950c96b9ee6d00ec9706393d54708f8fbee1&=&format=webp&quality=lossless&width=1401&height=934'); /* Replace with your background image URL */
+  background-size: cover;
+  background-position: center;
+}
+
+.upload-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(107, 66, 50, 0.7), rgba(107, 66, 50, 0.5)); /* Brown gradient with transparency */
+}
+
+.upload-container button {
+  position: relative;
+  padding: 15px 30px;
+  background-color: #634c44; /* Lighter brown for button */
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.upload-container button:hover {
+  background-color: #a38170; /* Darker brown on hover */
+}
+
+.upload-container h2 {
+  position: relative;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: white;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  text-shadow: 
+    1px 1px 0 #000,  
+    -1px -1px 0 #000,  
+    1px -1px 0 #000,  
+    -1px 1px 0 #000;  /* Outline effect for the text */
+}
+
+/* Story Popup Styling */
+.story-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.story-popup.active {
+  display: flex;
+}
+
+.story-popup-content {
+  background-color: #2c2c2c; /* Dark brown for the popup content */
+  padding: 30px;
+  border-radius: 12px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.story-popup-content input {
+  display: block;
+  width: 93%;
+  margin-bottom: 15px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #6e4b3d;
+  font-size: 1rem;
+}
+
+.story-popup-content button {
+  background-color: #8d6e63; /* Lighter brown for button */
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  cursor: pointer;
+  margin: 5px;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.story-popup-content button:hover {
+  background-color: #5f4b41;
+}
+
+#previewContainer {
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.preview-media {
+  max-width: 100%;
+  max-height: 500px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cropper-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+
+.hidden {
+  display: none;
+}
+
+img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.story-viewer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.story-container {
+  width: 27%;
+  height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: linear-gradient(135deg, #6e4b3d, #3b2f2f); /* Brown gradient for the story card */
+  border-radius: 12px; /* Rounded corners */
+  overflow: hidden; /* Prevent any overflow beyond rounded corners */
+}
+
+.story-viewer.active {
+  display: flex;
+  flex-direction: row;
+}
+
+.story-viewer-title {
+  position: absolute; /* Absolute positioning to overlay on top of the media */
+  left: 5%;
+  top: 1.5%; /* Distance from the top of the container */
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  z-index: 10; /* Make sure it stays on top of the media */
+  text-shadow: 
+  1px 1px 0 #000, 
+  -1px -1px 0 #000,
+  1px -1px 0 #000, 
+  -1px 1px 0 #000,
+  1px 0px 0 #000, 
+  -1px 0px 0 #000, 
+  0px 1px 0 #000, 
+  0px -1px 0 #000;
+}
+
+.story-viewer-content {
+  height: 100%;
+  width: 100%; /* Make sure the width is 100% */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+
+}
+
+.story-viewer img, .story-viewer video {
+  max-height: 100%;
+  width: 100%;
+  height: auto; /* Adjust height based on width */
+  object-fit: cover;
+}
+
+/* Progress Bar Styling */
+.progress-bar {
+  position: absolute; 
+  top: 8%;
+  left: 50%;
+  z-index: 100;
+  transform: translateX(-50%);
+  width: 25%;
+  height: 3px;
+  background-color: rgba(155, 155, 155, 0.74);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background-color: #ffffff; /* Brown color for progress */
+  width: 0%;
+  transition: width linear;
+}
+
+.pause-button {
+  position: absolute;
+  top: 3.7%;
+  right: 50px; /* Adjusted to be beside the close button */
+  background: none;
+  border: none;
+  font-size: 1.3em;
+  color: #fff;
+  cursor: pointer;
+  outline: none; /* Removes the blue outline */
+  z-index: 100;
+  box-shadow: none; /* Prevents any shadow effects */
+  text-shadow: 
+    1px 1px 0 #000, 
+    -1px -1px 0 #000,
+    1px -1px 0 #000, 
+    -1px 1px 0 #000,
+    1px 0px 0 #000, 
+    -1px 0px 0 #000, 
+    0px 1px 0 #000, 
+    0px -1px 0 #000;
+}
+
+.pause-button:focus,
+.pause-button:active {
+  outline: none !important; /* Ensures no outline appears when clicked */
+  box-shadow: none !important; /* Prevents any default browser effects */
+}
+
+.pause-button:hover {
+  background-color: rgba(255, 255, 255, 0.512);
+}
+
+/* Close story display styling */
+.close-button {
+  position: absolute;
+  top: 4%;
+  right: 10px;
+  font-size: 1.5em;
+  background-color: rgba(255, 255, 255, 0);
+  color:white;
+  border: none;
+  cursor: pointer;
+  text-shadow: 
+    1px 1px 0 #000, 
+    -1px -1px 0 #000,
+    1px -1px 0 #000, 
+    -1px 1px 0 #000,
+    1px 0px 0 #000, 
+    -1px 0px 0 #000, 
+    0px 1px 0 #000, 
+    0px -1px 0 #000; /* Creates a solid black outline around the text */
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.512);
+}
+
+.story-nav {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px; /* Space above the buttons */
+}
+
+.nav-button {
+  background-color: #8d6e63; /* Button color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  margin: 0 5px; /* Space between buttons */
+  transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+  background-color: #5f4b41; /* Darker shade on hover */
+}
+.nav-arrow-left, .nav-arrow-right{
+  position: absolute;
+  transform: translateY(-50%);
+  font-size: 2em; /* Larger text */
+  background-color: rgba(255, 255, 255, 0); /* Grey background */
+  color: #fff; /* White arrow icon */
+  padding: 15px; /* Adjust padding to create a circular button */
+  cursor: pointer; /* Pointer cursor on hover */
+  border-radius: 100%; /* Circle shape */
+  transition: all 0.3s ease; /* Smooth transition */
+  top: 50%; /* Position vertically centered */
+  z-index: 10; /* Ensure the arrow stays on top */
+  border: none; /* No border for a cleaner look */
+  text-shadow: 
+    1px 1px 0 #000, 
+    -1px -1px 0 #000,
+    1px -1px 0 #000, 
+    -1px 1px 0 #000,
+    1px 0px 0 #000, 
+    -1px 0px 0 #000, 
+    0px 1px 0 #000, 
+    0px -1px 0 #000; /* Creates a solid black outline around the text */
+}
+
+.nav-arrow-left{
+  right: 90%;
+}
+
+.nav-arrow-right{
+  left: 90%;
+}
+
+
+.nav-arrow-left:hover, .nav-arrow-right:hover {
+  background-color: rgba(175, 175, 175, 0.559); /* Darker grey on hover */
+  color: #fff; /* White arrow icon remains on hover */
+}
+
+.nav-arrow:disabled {
+  color: #a4a4a4; /* Light gray for disabled buttons */
+  background-color: #666666; /* Darker grey on hover */
+  cursor: not-allowed; /* Not allowed cursor for disabled button */
+}
+
+/* Footer Styling */
+.footer {
+  position: absolute;
+  bottom: 1;
+  width: 100%;
+  background: linear-gradient(135deg, #3b2f2f, #6e4b3d); /* Brown gradient for header and footer */
+  color: #fff;
+  padding: 15px 0;
+  text-align: center;
+}
+
+/* Blog Section */
+.blog-section {
+  width: 85.9%; /* Ensures margin on both sides */
+  margin: 5.3%; /* Centers the blog */
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-shadow: 
+    1px 1px 0 #000, 
+    -1px -1px 0 #000,
+    1px -1px 0 #000, 
+    -1px 1px 0 #000,
+    1px 0px 0 #000, 
+    -1px 0px 0 #000, 
+    0px 1px 0 #000, 
+    0px -1px 0 #000; /* Creates a solid black outline around the text */
+}
+
+/* Blog Post Styling */
+.blog-post {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+
+}
+
+.blog-post h3 {
+  color: #fff;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.blog-post p {
+  font-size: 1rem;
+  color: #ddd;
+  line-height: 1.5;
+}
+
+/* Blog Form */
+.blog-form {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.179);
+}
+.blog-post img {
+  position: relative;
+}
+
+.blog-form input,
+.blog-form textarea {
+  width: 98.5%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+}
+
+.blog-form button {
+  background-color: #f0a400;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.blog-form button:hover {
+  background-color: #d98b00;
+}
+
+/* Ensure the reactions section appears above the progress bar */
+.reactions {
+  position: absolute;
+  top: 20%;
+  right: 0%;
+  background-color: rgba(255, 255, 255, 0);
+  display: flex; /* Enable flexbox */
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: center;
+}
+
+.reactions button, comment {
+  background-color: rgba(255, 255, 255, 0); /* Transparent background */
+  border: none; /* Remove border */
+  outline: none; /* Remove the outline when focused */
+  cursor: pointer; /* Change cursor to pointer when hovered */
+  font-size: 30px; /* Adjust the size of the emoji */
+  transition: transform 0.2s ease; /* Optional: add a smooth hover effect */
+}
+
+.reactions button:hover {
+  transform: scale(1.2); /* Increase size on hover */
+}
+
+.reactions span{
+  text-shadow: 
+  1px 1px 0 #000, 
+  -1px -1px 0 #000,
+  1px -1px 0 #000, 
+  -1px 1px 0 #000,
+  1px 0px 0 #000, 
+  -1px 0px 0 #000, 
+  0px 1px 0 #000, 
+  0px -1px 0 #000; /* Creates a solid black outline around the text */
+}
+
+.comment-section {
+  position: absolute;
+  width: 93%;
+  bottom: 2%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.comment-textbox {
+  width: 100%;
+  padding: 10px 15px 0px 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 35px;
+  resize: none;
+  margin-right: 10px;
+  background-color: #ffffff00;
+  color: white;
+  
+}
+
+.comment-textbox::placeholder {
+  color: rgb(208, 208, 208);
+}
+
+.comment-textbox:focus {
+  border: 1px solid #ccc; /* Set the border to a fixed size */
+  outline: none; /* Remove the default outline */
+}
+
+.send-button {
+  background-color: #007bff00;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.send-icon {
+  font-size: 2.2em;
+}
+
+.comments-container {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.comment {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.volume-control-container{
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  top: 7.7%;
+  left: 5%;
+}
+
+.controls-container input[type="range"] {
+  width: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.controls-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.controls-container input[type="range"]:focus {
+  outline: none;
+}
+
+.controls-container input[type="range"]:hover {
+  background: #ccc;
+}
+
+.trim-controls-container {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.timestamp-input {
+  margin: 5px;
+  padding: 5px;
+  width: 100px; 
+}
+
+.trim-button, .reset-button {
+  margin-top: 5px;
+  padding: 10px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.trim-button:hover, .reset-button:hover {
+  background-color: #45a049;
+}
+
+.preview-video {
+  width: 100%;
+  height: auto;
+}
+
+.time-container {
+  width: 100%;
+  flex-direction: row;
+}
+
+.scroll-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 10; /* Ensure buttons appear above stories */
+  font-size: 1.5em;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.scroll-button:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.scroll-left {
+  left: 10px; /* Position on the left side */
+}
+
+.scroll-right {
+  right: 10px; /* Position on the right side */
+}
+
+.stories-container::-webkit-scrollbar {
+  height: 8px; /* Height of the scroll bar */
+}
+
+.stories-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1); /* Light background for the track */
+  border-radius: 10px;
+}
+
+.stories-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5); /* Scroll bar thumb color */
+  border-radius: 10px;
+}
+
+.stories-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.8); /* Scroll bar thumb color on hover */
+}

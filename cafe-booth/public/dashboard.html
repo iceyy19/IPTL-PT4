@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Social Media Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+
+    <script src="script.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+</head>
+  
+<body>
+
+    <script>
+        fetch("/auth/user")
+            .then(res => res.json())
+            .then(user => {
+            if (!user || !user.password) {
+                window.location.href = "/login";
+            }
+            })
+            .catch(() => {
+            window.location.href = "/login";
+            });
+      
+        // Disable back button to prevent going back to dashboard after logout
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = function () {
+          window.history.pushState(null, "", window.location.href);
+        };
+      </script>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <h1>CafeStory</h1>
+        </div>
+        <nav class="nav">
+            <a href="Index.html">Home</a>
+            <a href="messages.html">Messages</a>
+            <a href="#">Profile</a>
+        </nav>
+        <nav class="logout">
+            <button onclick="logout()">Logout</button>
+        </nav>
+    </header>
+
+    <div class="holder-container">
+        <!-- Main Content -->
+        <div class="upload-container">
+            <h2>Your Coffee Makes Your Day</h2>
+            <button onclick="showStoryPopup()">Create New Story</button>
+        </div>
+
+        <div class="stories-wrapper">
+            <button class="scroll-button scroll-left" onclick="scrollStories(-1)">&#10094;</button>
+            <div class="stories-container" id="storiesContainer">
+              <div class="story add-story" onclick="showStoryPopup()">
+                <span>+</span>
+                <p>Click to Add Story</p>
+              </div>
+            </div>
+            <button class="scroll-button scroll-right" onclick="scrollStories(1)">&#10095;</button>
+          </div>
+
+        <div class="story-popup" id="storyPopup">
+            <div class="story-popup-content">
+                <h3>Create Your Story</h3>
+                <input type="file" id="mediaInput" accept="image/*,video/*" onchange="loadMediaPreview(event)">
+                <input type="text" id="storyTitle" placeholder="Enter story title">
+                <div id="previewContainer" class="media-preview hidden">
+                    <img id="imageToCrop" style="max-width: 100%; display: block;">
+                    <video id="videoPreview" controls style="max-width: 100%; display: none;"></video>
+                    <div class="cropper-buttons">
+                        <button onclick="cropImage()">Crop Image</button>
+                        <button onclick="resetCrop()">Reset Crop</button>
+                    </div>
+                    
+                    <div id="videoTrimControls" class="hidden">
+                        <label for="startTime">Start Time (MM:SS): </label>
+                        <input type="text" id="startTime" value="00:00" pattern="\d{2}:\d{2}" maxlength="5" placeholder="MM:SS">
+                        
+                        <label for="endTime">End Time (MM:SS): </label>
+                        <input type="text" id="endTime" value="00:05" pattern="\d{2}:\d{2}" maxlength="5" placeholder="MM:SS">
+                        
+                        <button onclick="trimVideo()">Trim Video</button>
+                    </div>                    
+                </div>
+                <input type="file" id="audioInput" accept="audio/*">
+                <button onclick="addStories()">Post Story</button>
+                <button onclick="closeStoryPopup()">Cancel</button>
+            </div>
+        </div>
+
+        <div class="story-viewer" id="storyViewer">
+            <div class="story-container" id="storyContainer">
+                <div class="progress-bar">    
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div class="story-viewer-content" id="storyViewerContent">
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Blog Section -->
+    <div class="blog-section">
+        <div class="blog-form">
+            <h3>Share Your Own Coffee Story</h3>
+            <input type="text" id="blogName" placeholder="Your Name (Optional)">
+            <textarea id="blogContent" placeholder="Write about your special moment..."></textarea>
+            <input type="file" id="blogImage" accept="image/*">
+            <button onclick="postBlog()">Post</button>
+        </div>
+    
+        <div class="blog-posts" id="blogPosts">
+            <h3>Recent Stories from Our Community</h3>
+            <div class="no-posts">No posts yet. Be the first to share your story!</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 CafeStory</p>
+    </footer>
+
+    <script>
+        function logout() {
+            fetch("/auth/logout", { method: "GET" })
+                .then(() => {
+                    window.location.replace("/login"); // Redirect to login after logout
+                })
+                .catch(err => console.error("Logout failed:", err));
+        }
+
+    </script>
+    
+</body>
+</html>

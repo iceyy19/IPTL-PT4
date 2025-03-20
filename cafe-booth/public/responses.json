@@ -1,0 +1,174 @@
+[
+    {
+        "keywords": ["what", "coffee"],
+        "response": "Coffee is a popular beverage made from roasted coffee beans, is enjoyed worldwide for its rich, aromatic flavors and stimulating effects due to its caffeine content."
+    },
+    {
+        "keywords": ["what", "black", "coffee"],
+        "response": "Black coffee refers to brewed coffee without any added milk, sugar, or cream. It's the purest form of coffee, highlighting the natural flavors of the beans."
+    },
+    {
+        "keywords": ["what", "espresso"],
+        "response": "Espresso is a concentrated coffee brewed by forcing a small amount of nearly boiling water through finely ground coffee beans, has a strong, bold flavor and serves as the base for many coffee drinks."
+    },
+    {
+        "keywords": ["what", "cappuccino"],
+        "response": "Cappuccino is made with espresso, steamed milk, and topped with frothy milk foam, typically consists of equal parts of espresso, steamed milk, and foam."
+    },
+    {
+        "keywords": ["what", "latte"],
+        "response": "Latte is a coffee drink made with espresso and steamed milk, usually includes a small amount of foam on top. It offers a creamier and milder taste compared to other espresso-based drinks."
+    },
+    {
+        "keywords": ["what", "mocha"],
+        "response": "Mocha is a chocolate-flavored coffee drink, combines espresso, steamed milk, and chocolate syrup. It's often topped with whipped cream for extra sweetness."
+    },
+    {
+        "keywords": ["what", "cold", "brew"],
+        "response": "Cold brew coffee, made by steeping coarsely ground coffee beans in cold water for 12-24 hours, has a smoother, less acidic flavor than hot-brewed coffee."
+    },
+    {
+        "keywords": ["what", "decaf", "coffee"],
+        "response": "Decaf coffee, with most of its caffeine removed, contains significantly lower caffeine levels than regular coffee but still retains much of its flavor."
+    },
+    {
+        "keywords": ["what", "coffee", "grind"],
+        "response": "Coffee grind refers to the size of the ground coffee particles. The grind size affects the brewing process, with coarser grinds used for French press and finer grinds for espresso."
+    },
+    {
+        "keywords": ["what", "arabica", "coffee"],
+        "response": "Arabica coffee, known for its smooth and complex flavor profile, comes from beans grown in high altitudes and is often considered superior to Robusta coffee."
+    },
+    {
+        "keywords": ["what", "robusta", "coffee"],
+        "response": "Robusta coffee, characterized by a stronger, more bitter flavor, contains more caffeine than Arabica beans and is commonly used in espresso blends."
+    },
+    {
+        "keywords": ["what", "french", "press"],
+        "response": "French press, a brewing method involving steeping coarsely ground coffee in hot water and then pressing the grounds through a mesh filter, creates a rich and full-bodied coffee."
+    },
+    {
+        "keywords": ["what", "nitro", "coffee"],
+        "response": "Nitro coffee, cold brew infused with nitrogen gas, has a creamy texture and a smooth, stout-like consistency, typically served on tap like draft beer."
+    },
+    {
+        "keywords": ["what", "affogato"],
+        "response": "Affogato, a coffee-based dessert, consists of a shot of hot espresso poured over a scoop of vanilla ice cream, blending rich coffee with a creamy treat."
+    },
+    {
+        "keywords": ["froth", "milk"],
+        "response": "To froth milk, use a steam wand or a frother and heat to around 150°F while aerating to create microfoam."
+    },
+    {
+        "keywords": ["best", "coffee", "beans"],
+        "response": "Arabica beans are known for their smooth flavor, while Robusta beans have a stronger taste and more caffeine."
+    },
+    {
+        "keywords": ["coffee", "grind", "size"],
+        "response": "The grind size for coffee depends on your brewing method. For espresso, use a fine grind; for French press, use a coarse grind; and for drip coffee, use a medium grind."
+    },
+    {
+        "keywords": ["coffee", "decaf"],
+        "response": "Decaffeinated coffee is made by removing most of the caffeine from the beans, usually through water or chemical processes."
+    },
+    {
+        "keywords": ["coffee", "mood", "energy"],
+        "response": "Coffee is known to boost energy and focus, thanks to caffeine. It also has antioxidants that may improve mood and overall well-being."
+    },
+    {
+        "keywords": ["coffee", "caffeine", "effect"],
+        "response": "Caffeine is a stimulant that can improve alertness, mood, and focus. However, consuming too much can cause jitteriness or affect sleep."
+    },
+    {
+        "keywords": ["coffee", "origin", "countries"],
+        "response": "Coffee is grown in over 70 countries, with the top producers being Brazil, Vietnam, Colombia, and Indonesia."
+    },
+    {
+        "keywords": ["coffee", "sustainability"],
+        "response": "Sustainability in coffee involves practices like fair trade, organic farming, and supporting farmers to ensure the coffee industry remains viable."
+    },
+    {
+        "keywords": ["instant", "coffee", "make"],
+        "response": "To make instant coffee, simply add hot water to a teaspoon of instant coffee granules and stir."
+    },
+    {
+        "keywords": ["coffee", "acidity"],
+        "response": "Coffee acidity refers to the bright, tangy flavors often found in high-quality beans, especially those grown in higher altitudes. Lighter roasts tend to have more acidity."
+    },
+    {
+        "keywords": ["coffee", "aroma"],
+        "response": "The aroma of coffee comes from volatile compounds released during brewing. Freshly ground coffee will have the most aromatic experience."
+    },
+    {
+        "keywords": ["coffee", "health", "benefits"],
+        "response": "Moderate coffee consumption is linked to a reduced risk of several diseases, including Parkinson’s, type 2 diabetes, and heart disease."
+    },
+    {
+        "keywords": ["how", "make", "black", "coffee"],
+        "response": "To make black coffee, follow these steps:\n1. Measure 1 to 2 tablespoons of ground coffee per 6 ounces of water.\n2. Boil water to about 200°F (just below boiling).\n3. Pour the hot water over the coffee grounds in a drip coffee maker, French press, or pour-over filter.\n4. Let the coffee brew for 4-5 minutes.\n5. Once brewed, pour the coffee into your cup and enjoy. No milk or sugar is added in black coffee."
+    },
+    {
+        "keywords": ["how", "make", "espresso"],
+        "response": "To make espresso, follow these steps:\n1. Use 18-20 grams of finely ground coffee for a double shot.\n2. Tamp the coffee grounds evenly into the portafilter.\n3. Lock the portafilter into the espresso machine.\n4. Start the espresso machine and let it extract for 25-30 seconds.\n5. The result should be a rich, concentrated shot of espresso."
+    },
+    {
+        "keywords": ["how", "make", "latte"],
+        "response": "To make a latte, follow these steps:\n1. Brew a shot of espresso.\n2. Steam 6-8 ounces of milk using a steam wand, until it's frothy and heated to 150°F.\n3. Pour the steamed milk into the espresso, holding back the foam with a spoon.\n4. Spoon the foam on top of the latte for a creamy finish."
+    },
+    {
+        "keywords": ["how", "make", "cappuccino"],
+        "response": "To make a cappuccino, follow these steps:\n1. Brew a shot of espresso.\n2. Steam 5 ounces of milk until it's frothy and reaches 150°F.\n3. Pour the steamed milk into the espresso, filling the cup.\n4. Top with a layer of thick, frothed milk foam. The foam should be equal in volume to the milk."
+    },
+    {
+        "keywords": ["how", "make", "mocha"],
+        "response": "To make a mocha, follow these steps:\n1. Brew a shot of espresso.\n2. Heat 6 ounces of milk and stir in 2 tablespoons of chocolate syrup.\n3. Pour the chocolate-milk mixture into the espresso.\n4. Top with whipped cream and a sprinkle of cocoa powder or chocolate shavings for extra flavor."
+    },
+    {
+        "keywords": ["how", "brew", "cold", "brew"],
+        "response": "To brew cold brew coffee, follow these steps:\n1. Coarsely grind 1 cup of coffee beans.\n2. Combine the coffee grounds with 4 cups of cold or room temperature water in a jar or pitcher.\n3. Stir well and let it steep for 12-24 hours in the fridge.\n4. After steeping, strain the coffee using a fine mesh filter or cheesecloth.\n5. Serve the cold brew over ice, diluted with water or milk as desired."
+    },
+    {
+        "keywords": ["how", "make", "iced", "coffee"],
+        "response": "To make iced coffee, follow these steps:\n1. Brew a strong cup of coffee using your preferred method.\n2. Allow the coffee to cool to room temperature or refrigerate it.\n3. Fill a glass with ice cubes.\n4. Pour the cooled coffee over the ice and add milk, cream, or sweetener to taste."
+    },
+    {
+        "keywords": ["how", "make", "french", "press"],
+        "response": "To make coffee using a French press, follow these steps:\n1. Boil water to about 200°F.\n2. Add 1 ounce (about 2 tablespoons) of coarsely ground coffee to the French press for every 4 ounces of water.\n3. Pour the hot water over the coffee grounds and stir gently.\n4. Put the lid on the French press and let it steep for 4 minutes.\n5. After steeping, slowly press the plunger down to separate the grounds from the coffee. Pour and enjoy!"
+    },
+    {
+        "keywords": ["how", "brew", "turkish", "coffee"],
+        "response": "To brew Turkish coffee, follow these steps:\n1. Use a cezve (small pot) and add 1 tablespoon of very finely ground Turkish coffee per serving.\n2. Add 1 cup of cold water for each serving and sugar to taste.\n3. Stir the mixture and place the cezve over low heat.\n4. Let the coffee foam up, then remove from heat before it overflows. Repeat this twice.\n5. Pour the coffee into a small cup, ensuring the grounds settle at the bottom."
+    },
+    {
+        "keywords": ["how", "froth", "milk"],
+        "response": "To froth milk, follow these steps:\n1. Pour cold milk into a metal steaming pitcher, filling it about 1/3 of the way.\n2. Submerge the steam wand just below the surface of the milk and turn it on.\n3. Froth the milk until it's doubled in volume and reaches 150°F.\n4. Turn off the steam wand and tap the pitcher on the counter to remove large bubbles.\n5. Swirl the milk to create a smooth, velvety texture, ready for your espresso-based drinks."
+    },
+    {
+        "keywords": ["how", "make", "decaf", "coffee"],
+        "response": "To make decaf coffee, follow these steps:\n1. Use decaffeinated coffee grounds or beans, with the same ratio of 1 to 2 tablespoons per 6 ounces of water.\n2. Brew the coffee as you would any other, using your preferred method: drip, pour-over, French press, or espresso.\n3. The resulting cup will have less caffeine but still retain the full flavor profile of the beans."
+    },
+    {
+        "keywords": ["how", "store", "coffee", "beans"],
+        "response": "To store coffee beans, follow these steps:\n1. Keep your beans in an airtight container to minimize exposure to air.\n2. Store the container in a cool, dark place, away from sunlight, heat, and moisture.\n3. Avoid storing beans in the fridge or freezer, as moisture can affect the flavor.\n4. Grind the beans just before brewing for the freshest taste."
+    },
+    {
+        "keywords": ["how", "clean", "coffee", "maker"],
+        "response": "To clean your coffee maker, follow these steps:\n1. Unplug the coffee maker and remove any remaining coffee grounds or filters.\n2. Fill the water reservoir with equal parts white vinegar and water.\n3. Run a brewing cycle with the vinegar solution to remove mineral buildup.\n4. Run two additional cycles with clean water to rinse out the vinegar.\n5. Wipe down the exterior and any removable parts with a damp cloth."
+    },
+    {
+        "keywords": ["how", "make", "coffee"],
+        "response": "Please specifiy what kind of coffee you would like to make."
+    },
+    {
+        "keywords": ["hello"],
+        "response": "Ciao! I'm here to help with coffee! Ask me anything about brewing, beans, or techniques."
+    },
+    {
+        "keywords": ["hi"],
+        "response": "Ciao! I'm here to help with coffee! Ask me anything about brewing, beans, or techniques."
+    },
+    {
+        "keywords": [],
+        "response": "Ask me anything about Coffee."
+    }
+]
