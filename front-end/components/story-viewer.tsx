@@ -90,13 +90,22 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   }
 
   const togglePause = () => {
-    setIsPaused(!isPaused)
-    if (story.type === "video" && videoRef.current) {
-      if (videoRef.current.paused) {
+    if (isPaused) {
+      if (story.type === "video" && videoRef.current) {
         videoRef.current.play()
       } else {
+        startProgress()
+      }
+      setIsPaused(false)
+    } else {
+      if (story.type === "video" && videoRef.current) {
         videoRef.current.pause()
       }
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current)
+        progressInterval.current = null
+      }
+      setIsPaused(true)
     }
   }
 
@@ -118,25 +127,14 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
     setShowComments(!showComments)
   }
 
-  useEffect(() => {
-    // Reset progress when story changes
-    setProgress(0)
-    setIsPaused(false)
-
-    // Clear any existing interval
-    if (progressInterval.current) {
-      clearInterval(progressInterval.current)
-    }
-
-    // For images, use a timer to advance progress
+  const startProgress = () => {
     if (story.type === "image") {
       progressInterval.current = setInterval(() => {
         setProgress((prev) => {
-          if (isPaused) return prev
           const newProgress = prev + 0.5
           if (newProgress >= 100) {
             clearInterval(progressInterval.current!)
-            // Wait a moment before moving to next story
+            progressInterval.current = null
             setTimeout(goToNextStory, 300)
             return 100
           }
@@ -144,13 +142,25 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
         })
       }, 50)
     }
+  }
 
+  useEffect(() => {
+    setProgress(0)
+    setIsPaused(false)
+    if (progressInterval.current) {
+      clearInterval(progressInterval.current)
+      progressInterval.current = null
+    }
+    if (story.type === "image") {
+      startProgress()
+    }
     return () => {
       if (progressInterval.current) {
         clearInterval(progressInterval.current)
+        progressInterval.current = null
       }
     }
-  }, [story.id, isPaused])
+  }, [story.id])
 
   // Handle video progress
   const handleVideoTimeUpdate = () => {
@@ -165,13 +175,20 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   }
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        // Only allow the Dialog's built-in close behavior to close the entire story
+        // when explicitly clicking the main close button or pressing Escape
+        if (!open) onClose()
+      }}
+    >
       <DialogContent
-        className={`p-0 h-[80vh] max-h-[80vh] overflow-hidden ${showComments ? "max-w-5xl" : "max-w-3xl"}`}
+        className={`p-0 h-[80vh] max-h-[80vh] w-[45vw] max-w-[45vw] overflow-hidden ${showComments ? "max-w-5xl" : "max-w-3xl"}`}
       >
         <div className="relative h-full w-full flex">
           {/* Story Content Side */}
-          <div className="relative flex-1 h-full">
+          <div className="relative flex-1 h-full w-full max-w-[360px] max-h-[640px] mx-auto bg-black">
             {/* Progress bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-muted z-10">
               <div
@@ -197,27 +214,14 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
               size="icon"
               className="absolute top-4 right-16 z-10 text-white hover:bg-black/20 rounded-full"
               onClick={(e) => {
-                e.stopPropagation()
-                togglePause()
+                e.stopPropagation();
+                togglePause();
               }}
             >
               {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
             </Button>
 
-            {/* Comments toggle button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`absolute top-4 right-28 z-10 ${showComments ? "text-primary" : "text-white"} hover:bg-black/20 rounded-full`}
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowComments(!showComments)
-              }}
-            >
-              <MessageCircle className="h-5 w-5" />
-            </Button>
-
-            {/* Close button */}
+            {/* Close button for the entire story */}
             <Button
               variant="ghost"
               size="icon"
@@ -228,7 +232,10 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
             </Button>
 
             {/* Story content */}
-            <div className="h-full bg-black flex items-center justify-center" onClick={togglePause}>
+            <div
+              className="h-full flex items-center justify-center"
+              onClick={() => togglePause()} // Toggle pause/play when clicking the story content
+            >
               {story.type === "image" ? (
                 <img
                   src={story.media || "/placeholder.svg"}
@@ -291,10 +298,20 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
               </Button>
             </div>
 
+            {/* Chat button - moved to bottom of right navigation */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`absolute right-4 bottom-20 z-10 rounded-full ${showComments ? "bg-primary text-white" : "bg-black/20 text-white"} hover:bg-black/40`}
+              onClick={toggleComments}
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+
             {/* Comment input section */}
             <div
               className="absolute bottom-4 left-4 right-4 z-10 flex items-center gap-2"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()} // Prevent click from propagating to the story content
             >
               <Input
                 id="comment-input"
@@ -302,9 +319,12 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className="bg-black/20 border-none text-white placeholder:text-white/70 focus-visible:ring-primary"
+                onFocus={() => {
+                  if (!isPaused) togglePause(); // Pause the story when the comment textbox is focused
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleComment()
+                    handleComment();
                   }
                 }}
               />
@@ -323,8 +343,20 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
           {/* Comments Side */}
           {showComments && (
             <div className="w-80 h-full border-l border-border/40 bg-background/95 flex flex-col">
-              <div className="p-4 border-b border-border/40">
+              <div className="p-4 border-b border-border/40 flex justify-between items-center">
                 <h3 className="font-semibold">Comments</h3>
+                {/* Close button for the comment section */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:bg-black/20"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowComments(false) // Close only the comment section
+                  }}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
 
               <ScrollArea className="flex-1">
@@ -376,4 +408,3 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
     </Dialog>
   )
 }
-
