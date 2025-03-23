@@ -1,28 +1,14 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
+"use client";
 
-const inter = Inter({ subsets: ["latin"] })
+import { SessionProvider } from "next-auth/react";
+import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "CafeStory - Share Your Coffee Moments",
-  description: "A social media platform for coffee lovers",
-    generator: 'v0.dev'
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
-  )
+  );
 }
-
-
-
-import './globals.css'

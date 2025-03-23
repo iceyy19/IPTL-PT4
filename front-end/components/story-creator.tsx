@@ -129,9 +129,9 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
                 <Cropper
                   src={mediaPreview || undefined}
                   style={{ height: 300, width: "100%" }}
+                  viewMode={1}
                   aspectRatio={9 / 16}
                   guides={true}
-                  viewMode={1} 
                   ref={cropperRef}
                 />
                 <div className="flex justify-end gap-2 mt-2">

@@ -1,24 +1,51 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Coffee, Menu, MessageSquare, User, LogOut } from "lucide-react"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState } from "react";
+import { useRouter } from "next/navigation"; // Ensure this is inside the component
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Coffee, Menu, MessageSquare, User, LogOut } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [user, setUser] = useState({ name: "Coffee Lover", username: "@coffeelover" })
+  const router = useRouter(); // ✅ Move inside the component
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState({ name: "Coffee Lover", username: "@coffeelover" });
 
   const handleLogout = async () => {
     try {
-      await fetch("/auth/logout", { method: "GET" })
-      window.location.replace("/login")
-    } catch (err) {
-      console.error("Logout failed:", err)
+      const token = localStorage.getItem("token");
+
+      // Remove token first
+      localStorage.removeItem("token");
+
+      if (!token) {
+        console.log("No token found, redirecting to login...");
+        router.push("/login"); // ✅ Use router.push correctly
+        return;
+      }
+
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error("Logout failed:", data.error);
+      }
+
+      console.log("Logged out successfully");
+      router.push("/login"); // ✅ Use Next.js navigation
+    } catch (error) {
+      console.error("Logout error:", error);
+      router.push("/login"); // ✅ Ensure redirection
     }
-  }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -119,6 +146,5 @@ export function Header() {
         </Sheet>
       </div>
     </header>
-  )
+  );
 }
-
