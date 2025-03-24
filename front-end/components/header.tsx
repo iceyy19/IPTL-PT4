@@ -14,36 +14,36 @@ export function Header() {
   const [user, setUser] = useState({ name: "Coffee Lover", username: "@coffeelover" });
 
   const handleLogout = async () => {
+    const sessionId = localStorage.getItem("sessionId");
+  
+    if (!sessionId) {
+      console.log("No session found, redirecting to login...");
+      router.push("/login");
+      return;
+    }
+  
     try {
-      const token = localStorage.getItem("token");
-
-      // Remove token first
-      localStorage.removeItem("token");
-
-      if (!token) {
-        console.log("No token found, redirecting to login...");
-        router.push("/login"); // ✅ Use router.push correctly
-        return;
-      }
-
       const response = await fetch("/api/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ sessionId }),
       });
-
-      if (!response.ok) {
+  
+      if (response.ok) {
+        console.log("Logged out successfully");
+      } else {
         const data = await response.json();
         console.error("Logout failed:", data.error);
       }
-
-      console.log("Logged out successfully");
-      router.push("/login"); // ✅ Use Next.js navigation
+  
+      localStorage.removeItem("sessionId");
+      router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
-      router.push("/login"); // ✅ Ensure redirection
+      localStorage.removeItem("sessionId");
+      router.push("/login");
     }
   };
 
@@ -65,18 +65,20 @@ export function Header() {
           <Link href="/messages" className="text-sm font-medium transition-colors hover:text-primary">
             Messages
           </Link>
-          <Link href="/profile" className="text-sm font-medium transition-colors hover:text-primary">
-            Profile
+          <Link href="/friends" className="text-sm font-medium transition-colors hover:text-primary">
+            Friends
           </Link>
           <div className="flex items-center gap-2 ml-4 border-l pl-4 border-border/40">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/images/avatar.jpg" alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="hidden lg:block">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted-foreground">{user.username}</p>
-            </div>
+            <Link href="/profile" className="flex items-center gap-2 hover:text-primary">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="/images/avatar.jpg" alt={user.name} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="hidden lg:block">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.username}</p>
+              </div>
+            </Link>
           </div>
           <Button
             variant="ghost"
@@ -98,7 +100,11 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="w-[240px] sm:w-[300px]">
             <nav className="flex flex-col gap-4 mt-8">
-              <div className="flex items-center gap-3 p-2 mb-4 bg-muted/20 rounded-lg">
+              <Link
+                href="/profile"
+                className="flex items-center gap-3 p-2 mb-4 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 <Avatar className="h-10 w-10">
                   <AvatarImage src="/images/avatar.jpg" alt={user.name} />
                   <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
@@ -107,7 +113,7 @@ export function Header() {
                   <p className="font-medium">{user.name}</p>
                   <p className="text-xs text-muted-foreground">{user.username}</p>
                 </div>
-              </div>
+              </Link>
               <Link
                 href="/"
                 className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
@@ -125,12 +131,12 @@ export function Header() {
                 Messages
               </Link>
               <Link
-                href="/profile"
+                href="/friends"
                 className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <User className="h-4 w-4" />
-                Profile
+                Friends
               </Link>
               <Button
                 variant="ghost"
@@ -146,5 +152,5 @@ export function Header() {
         </Sheet>
       </div>
     </header>
-  );
+  )
 }

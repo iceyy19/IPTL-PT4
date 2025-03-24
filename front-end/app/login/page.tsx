@@ -40,8 +40,8 @@ export default function LoginPage() {
         return;
       }
   
-      // Store the token in local storage or cookies
-      localStorage.setItem("token", data.token);
+      // Store the session in local storage or cookies
+      localStorage.setItem("sessionId", data.sessionId);
   
       // Redirect to the home page or dashboard
       router.push("/");

@@ -2,22 +2,27 @@ import mongoose from "mongoose";
 
 let isConnected = false; // Track the connection status
 
-export async function connectToDB() {  // ✅ Named export
+export const connectToDB = async () => {
   if (isConnected) {
-    console.log("MongoDB is already connected");
+    console.log("Database is already connected");
     return;
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
+    const dbUri = process.env.MONGODB_URI;
+    if (!dbUri) {
+      throw new Error("MONGODB_URI is not defined in the environment variables");
+    }
+
+    await mongoose.connect(dbUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
 
     isConnected = true;
-    console.log("MongoDB connected");
+    console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
     throw new Error("Failed to connect to MongoDB");
   }
-}
+};
