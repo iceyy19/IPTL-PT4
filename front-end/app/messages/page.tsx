@@ -182,7 +182,13 @@ export default function MessagesPage() {
 
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const router = useRouter();
-  
+    const [activeConversation, setActiveConversation] = useState<string | null>("1")
+    const [message, setMessage] = useState("")
+    const [conversations, setConversations] = useState(mockConversations)
+    const [messages, setMessages] = useState(mockMessages)
+    const [searchQuery, setSearchQuery] = useState("")
+    const messagesEndRef = useRef<HTMLDivElement>(null)
+
     useEffect(() => {
       const validateSession = async () => {
         const sessionId = localStorage.getItem("sessionId");
@@ -220,31 +226,24 @@ export default function MessagesPage() {
       validateSession();
     }, [router]);
 
-    if (!isAuthenticated) {
-        // Redirecting or showing a fallback if the user is not authenticated
-        return null; // Prevent rendering if the user is not authenticated
-      }
-
-  const [activeConversation, setActiveConversation] = useState<string | null>("1")
-  const [message, setMessage] = useState("")
-  const [conversations, setConversations] = useState(mockConversations)
-  const [messages, setMessages] = useState(mockMessages)
-  const [searchQuery, setSearchQuery] = useState("")
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  // Filter conversations based on search query
-  const filteredConversations = conversations.filter(
-    (conversation) =>
-      conversation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conversation.username.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
-  // Scroll to bottom of messages when active conversation changes or new message is added
+      // Scroll to bottom of messages when active conversation changes or new message is added
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }, [activeConversation, messages])
+
+    if (!isAuthenticated) {
+        // Redirecting or showing a fallback if the user is not authenticated
+        return null; // Prevent rendering if the user is not authenticated
+      }
+
+    // Filter conversations based on search query
+    const filteredConversations = conversations.filter(
+        (conversation) =>
+          conversation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          conversation.username.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
 
   const handleSendMessage = () => {
     if (!message.trim() || !activeConversation) return

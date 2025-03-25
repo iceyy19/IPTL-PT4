@@ -145,6 +145,13 @@ const mockAllUsers = [
 
 // Update the FriendsPage component to include the search dialog
 export default function FriendsPage() {
+    const [searchQuery, setSearchQuery] = useState("")
+    const [friends, setFriends] = useState(mockFriends)
+    const [friendRequests, setFriendRequests] = useState(mockFriendRequests)
+    const [suggestions, setSuggestions] = useState(mockSuggestions)
+    const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
+    const [globalSearchQuery, setGlobalSearchQuery] = useState("")
+    const [allUsers] = useState(mockAllUsers)
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const router = useRouter();
   
@@ -190,13 +197,6 @@ export default function FriendsPage() {
         return null; // Prevent rendering if the user is not authenticated
     }
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [friends, setFriends] = useState(mockFriends)
-  const [friendRequests, setFriendRequests] = useState(mockFriendRequests)
-  const [suggestions, setSuggestions] = useState(mockSuggestions)
-  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false)
-  const [globalSearchQuery, setGlobalSearchQuery] = useState("")
-  const [allUsers] = useState(mockAllUsers)
 
   // Filter friends based on search query
   const filteredFriends = friends.filter(
