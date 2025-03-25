@@ -9,7 +9,6 @@ import { Footer } from "@/components/footer";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export default function Home() {
   
     validateSession();
   }, [router]);
-  
+
   if (!isAuthenticated) {
     // Redirecting or showing a fallback if the user is not authenticated
     return null; // Prevent rendering if the user is not authenticated

@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { StoryCreator } from "@/components/story-creator"
 import { StoryViewer } from "@/components/story-viewer"
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Globe, Users, Lock, Eye } from "lucide-react"
 
-// Mock data for stories
+// Update the mockStories to include views and likes
 const mockStories = [
   {
     id: "1",
@@ -15,6 +15,21 @@ const mockStories = [
     media: "/images/coffee-1.jpg",
     type: "image",
     username: "@emma_coffee",
+    privacy: "public",
+    views: 124,
+    viewers: [
+      { id: "v1", name: "James Rodriguez", username: "@coffee_james", avatar: "/images/avatar-2.jpg", time: "2h ago" },
+      { id: "v2", name: "Sophia Chen", username: "@sophia_latte", avatar: "/images/avatar-3.jpg", time: "1h ago" },
+      { id: "v3", name: "Michael Brown", username: "@mike_espresso", avatar: "/images/avatar-4.jpg", time: "45m ago" },
+      { id: "v4", name: "Olivia Taylor", username: "@olivia_beans", avatar: "/images/avatar-5.jpg", time: "30m ago" },
+      // Add more viewers to reach the count
+    ],
+    likes: 42,
+    likers: [
+      { id: "l1", name: "James Rodriguez", username: "@coffee_james", avatar: "/images/avatar-2.jpg" },
+      { id: "l2", name: "Sophia Chen", username: "@sophia_latte", avatar: "/images/avatar-3.jpg" },
+      { id: "l3", name: "Michael Brown", username: "@mike_espresso", avatar: "/images/avatar-4.jpg" },
+    ],
   },
   {
     id: "2",
@@ -22,6 +37,18 @@ const mockStories = [
     media: "/images/coffee-2.jpg",
     type: "image",
     username: "@barista_mike",
+    privacy: "public",
+    views: 89,
+    viewers: [
+      { id: "v5", name: "Emma Wilson", username: "@emma_coffee", avatar: "/images/avatar-1.jpg", time: "3h ago" },
+      { id: "v6", name: "Olivia Taylor", username: "@olivia_beans", avatar: "/images/avatar-5.jpg", time: "2h ago" },
+      { id: "v7", name: "Daniel Lee", username: "@daniel_brew", avatar: "/images/avatar-6.jpg", time: "1h ago" },
+    ],
+    likes: 31,
+    likers: [
+      { id: "l4", name: "Emma Wilson", username: "@emma_coffee", avatar: "/images/avatar-1.jpg" },
+      { id: "l5", name: "Olivia Taylor", username: "@olivia_beans", avatar: "/images/avatar-5.jpg" },
+    ],
   },
   {
     id: "3",
@@ -29,6 +56,14 @@ const mockStories = [
     media: "/images/coffee-3.jpg",
     type: "image",
     username: "@coffee_addict",
+    privacy: "friends",
+    views: 56,
+    viewers: [
+      { id: "v8", name: "James Rodriguez", username: "@coffee_james", avatar: "/images/avatar-2.jpg", time: "4h ago" },
+      { id: "v9", name: "Michael Brown", username: "@mike_espresso", avatar: "/images/avatar-4.jpg", time: "3h ago" },
+    ],
+    likes: 18,
+    likers: [{ id: "l6", name: "James Rodriguez", username: "@coffee_james", avatar: "/images/avatar-2.jpg" }],
   },
   {
     id: "4",
@@ -36,6 +71,18 @@ const mockStories = [
     media: "/images/coffee-4.jpg",
     type: "image",
     username: "@espresso_expert",
+    privacy: "public",
+    views: 112,
+    viewers: [
+      { id: "v10", name: "Emma Wilson", username: "@emma_coffee", avatar: "/images/avatar-1.jpg", time: "5h ago" },
+      { id: "v11", name: "Sophia Chen", username: "@sophia_latte", avatar: "/images/avatar-3.jpg", time: "4h ago" },
+      { id: "v12", name: "Olivia Taylor", username: "@olivia_beans", avatar: "/images/avatar-5.jpg", time: "2h ago" },
+    ],
+    likes: 37,
+    likers: [
+      { id: "l7", name: "Emma Wilson", username: "@emma_coffee", avatar: "/images/avatar-1.jpg" },
+      { id: "l8", name: "Sophia Chen", username: "@sophia_latte", avatar: "/images/avatar-3.jpg" },
+    ],
   },
   {
     id: "5",
@@ -43,6 +90,14 @@ const mockStories = [
     media: "/images/coffee-5.jpg",
     type: "image",
     username: "@bean_lover",
+    privacy: "private",
+    views: 8,
+    viewers: [
+      { id: "v13", name: "James Rodriguez", username: "@coffee_james", avatar: "/images/avatar-2.jpg", time: "1h ago" },
+      { id: "v14", name: "Michael Brown", username: "@mike_espresso", avatar: "/images/avatar-4.jpg", time: "30m ago" },
+    ],
+    likes: 5,
+    likers: [{ id: "l9", name: "James Rodriguez", username: "@coffee_james", avatar: "/images/avatar-2.jpg" }],
   },
 ]
 
@@ -54,6 +109,22 @@ export function StorySection() {
     media: string
     type: string
     username: string
+    privacy: string
+    views: number
+    viewers: Array<{
+      id: string
+      name: string
+      username: string
+      avatar: string
+      time: string
+    }>
+    likes: number
+    likers: Array<{
+      id: string
+      name: string
+      username: string
+      avatar: string
+    }>
   }>(null)
   const [stories, setStories] = useState(mockStories)
   const storiesContainerRef = useRef<HTMLDivElement>(null)
@@ -73,8 +144,17 @@ export function StorySection() {
     media: string
     type: string
     username: string
+    privacy: string
   }) => {
-    setStories([newStory, ...stories])
+    // Add empty views and likes arrays to the new story
+    const storyWithStats = {
+      ...newStory,
+      views: 0,
+      viewers: [],
+      likes: 0,
+      likers: [],
+    }
+    setStories([storyWithStats, ...stories])
     setIsCreatorOpen(false)
   }
 
@@ -143,8 +223,27 @@ export function StorySection() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="text-white text-sm font-medium truncate">{story.title}</p>
-                  <p className="text-white/70 text-xs truncate">{story.username}</p>
+                  <div className="flex items-center gap-1 mb-1">
+                    {/* Add privacy icon */}
+                    <div className="bg-black/50 rounded-full p-0.5">
+                      {story.privacy === "public" ? (
+                        <Globe className="h-3 w-3 text-white" />
+                      ) : story.privacy === "friends" ? (
+                        <Users className="h-3 w-3 text-white" />
+                      ) : (
+                        <Lock className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    <p className="text-white text-sm font-medium truncate">{story.title}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-white/70 text-xs">{story.username}</p>
+                    {/* Add view count */}
+                    <div className="flex items-center text-white/70 text-xs">
+                      <Eye className="h-3 w-3 mr-1" />
+                      {story.views}
+                    </div>
+                  </div>
                 </div>
               </Card>
             ))}

@@ -40,6 +40,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { Post } from "@/types/post";
 
 // Mock data for blog posts with comments
 const initialPosts = [
@@ -90,6 +91,7 @@ const initialPosts = [
     timestamp: "2 hours ago",
     saved: false,
     privacy: "public",
+    edited: false,
   },
   {
     id: "2",
@@ -125,14 +127,15 @@ const initialPosts = [
     timestamp: "5 hours ago",
     saved: false,
     privacy: "friends",
+    edited: false,
   },
 ]
 
 export function BlogSection() {
-  const [posts, setPosts] = useState(initialPosts)
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [name, setName] = useState("")
   const [content, setContent] = useState("")
-  const [image, setImage] = useState<string | null>(null)
+  const [image, setImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [username, setUsername] = useState("@coffeelover")
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({})
@@ -145,6 +148,7 @@ export function BlogSection() {
   const [currentEditingPost, setCurrentEditingPost] = useState<any>(null)
   const [editedPostContent, setEditedPostContent] = useState("")
   const [editedPostPrivacy, setEditedPostPrivacy] = useState("")
+  const [editedStatus, setEditedStatus] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -160,7 +164,7 @@ export function BlogSection() {
   const handlePostSubmit = () => {
     if (!content.trim()) return
 
-    const newPost = {
+    const newPost: Post = {
       id: uuidv4(),
       name: name.trim() || "Anonymous",
       username: username.trim() || "@anonymous",
@@ -171,7 +175,8 @@ export function BlogSection() {
       timestamp: "Just now",
       saved: false,
       privacy: postPrivacy,
-    }
+      edited: false,
+    };
 
     setPosts([newPost, ...posts])
     setName("")
@@ -179,6 +184,7 @@ export function BlogSection() {
     setContent("")
     setImage(null)
     setPostPrivacy("public")
+    setEditedStatus(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }

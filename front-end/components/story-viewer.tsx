@@ -5,10 +5,23 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Heart, MessageCircle, Send, X, Pause, Play } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MessageCircle,
+  Send,
+  X,
+  Pause,
+  Play,
+  Eye,
+  ArrowUp,
+  Users,
+} from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Mock comments data
 const mockComments = {
@@ -35,29 +48,77 @@ const mockComments = {
 
 interface StoryViewerProps {
   story: {
-    id: string
-    title: string
-    media: string
-    type: string
-    username: string
-  }
+    id: string;
+    title: string;
+    media: string;
+    type: string;
+    username: string;
+    privacy: string;
+    views: number;
+    viewers: Array<{
+      id: string;
+      name: string;
+      username: string;
+      avatar: string;
+      time: string;
+    }>;
+    likes: number;
+    likers: Array<{
+      id: string;
+      name: string;
+      username: string;
+      avatar: string;
+    }>;
+  };
   stories: Array<{
-    id: string
-    title: string
-    media: string
-    type: string
-    username: string
-  }>
-  onClose: () => void
+    id: string;
+    title: string;
+    media: string;
+    type: string;
+    username: string;
+    privacy: string;
+    views: number;
+    viewers: Array<{
+      id: string;
+      name: string;
+      username: string;
+      avatar: string;
+      time: string;
+    }>;
+    likes: number;
+    likers: Array<{
+      id: string;
+      name: string;
+      username: string;
+      avatar: string;
+    }>;
+  }>;
+  onClose: () => void;
   setViewingStory: (
     story: {
-      id: string
-      title: string
-      media: string
-      type: string
-      username: string
-    } | null,
-  ) => void
+      id: string;
+      title: string;
+      media: string;
+      type: string;
+      username: string;
+      privacy: string;
+      views: number;
+      viewers: Array<{
+        id: string;
+        name: string;
+        username: string;
+        avatar: string;
+        time: string;
+      }>;
+      likes: number;
+      likers: Array<{
+        id: string;
+        name: string;
+        username: string;
+        avatar: string;
+      }>;
+    } | null
+  ) => void;
 }
 
 export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryViewerProps) {
@@ -65,8 +126,11 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   const [isPaused, setIsPaused] = useState(false)
   const [comment, setComment] = useState("")
   const [showComments, setShowComments] = useState(false)
+  const [showInsights, setShowInsights] = useState(false)
+  const [insightsTab, setInsightsTab] = useState("viewers")
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [hasLiked, setHasLiked] = useState(false)
 
   const currentIndex = stories.findIndex((s) => s.id === story.id)
   const hasNext = currentIndex < stories.length - 1
@@ -125,6 +189,13 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   const toggleComments = (e: React.MouseEvent) => {
     e.stopPropagation()
     setShowComments(!showComments)
+    setShowInsights(false)
+  }
+
+  const toggleInsights = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowInsights(!showInsights)
+    setShowComments(false)
   }
 
   const startProgress = () => {
@@ -147,6 +218,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   useEffect(() => {
     setProgress(0)
     setIsPaused(false)
+    setShowInsights(false)
     if (progressInterval.current) {
       clearInterval(progressInterval.current)
       progressInterval.current = null
@@ -184,11 +256,11 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
       }}
     >
       <DialogContent
-        className={`p-0 h-[80vh] max-h-[80vh] w-[45vw] max-w-[45vw] overflow-hidden ${showComments ? "max-w-5xl" : "max-w-3xl"}`}
+        className={`p-0 h-[80vh] max-h-[80vh] overflow-hidden ${showComments || showInsights ? "max-w-5xl" : "max-w-3xl"}`}
       >
         <div className="relative h-full w-full flex">
           {/* Story Content Side */}
-          <div className="relative flex-1 h-full w-full max-w-[360px] max-h-[640px] mx-auto bg-black">
+          <div className="relative flex-1 h-full">
             {/* Progress bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-muted z-10">
               <div
@@ -200,7 +272,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
             {/* Story title */}
             <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <Heart className="h-4 w-4 text-primary" />
+                <Heart className={`h-4 w-4 ${hasLiked ? "text-red-500 fill-red-500" : "text-primary"}`} />
               </div>
               <div>
                 <h3 className="text-white text-lg font-bold drop-shadow-md">{story.title}</h3>
@@ -214,8 +286,8 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
               size="icon"
               className="absolute top-4 right-16 z-10 text-white hover:bg-black/20 rounded-full"
               onClick={(e) => {
-                e.stopPropagation();
-                togglePause();
+                e.stopPropagation()
+                togglePause()
               }}
             >
               {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
@@ -232,10 +304,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
             </Button>
 
             {/* Story content */}
-            <div
-              className="h-full flex items-center justify-center"
-              onClick={() => togglePause()} // Toggle pause/play when clicking the story content
-            >
+            <div className="h-full bg-black flex items-center justify-center" onClick={togglePause}>
               {story.type === "image" ? (
                 <img
                   src={story.media || "/placeholder.svg"}
@@ -288,14 +357,30 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full bg-black/20 text-white hover:bg-black/40"
+                className={`rounded-full bg-black/20 ${hasLiked ? "text-red-500" : "text-white"} hover:bg-black/40`}
                 onClick={(e) => {
                   e.stopPropagation()
                   handleLike()
                 }}
               >
-                <Heart className="h-5 w-5" />
+                <Heart className={`h-5 w-5 ${hasLiked ? "fill-red-500" : ""}`} />
               </Button>
+            </div>
+
+            {/* Instagram-like swipe up for insights */}
+            <div
+              className="absolute bottom-20 left-0 right-0 flex justify-center z-10"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleInsights(e)
+              }}
+            >
+              <div className="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer">
+                <ArrowUp className="h-4 w-4 text-white" />
+                <span className="text-white text-sm">
+                  {story.views} {story.views === 1 ? "view" : "views"}
+                </span>
+              </div>
             </div>
 
             {/* Chat button - moved to bottom of right navigation */}
@@ -311,7 +396,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
             {/* Comment input section */}
             <div
               className="absolute bottom-4 left-4 right-4 z-10 flex items-center gap-2"
-              onClick={(e) => e.stopPropagation()} // Prevent click from propagating to the story content
+              onClick={(e) => e.stopPropagation()}
             >
               <Input
                 id="comment-input"
@@ -319,12 +404,9 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className="bg-black/20 border-none text-white placeholder:text-white/70 focus-visible:ring-primary"
-                onFocus={() => {
-                  if (!isPaused) togglePause(); // Pause the story when the comment textbox is focused
-                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleComment();
+                    handleComment()
                   }
                 }}
               />
@@ -343,20 +425,8 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
           {/* Comments Side */}
           {showComments && (
             <div className="w-80 h-full border-l border-border/40 bg-background/95 flex flex-col">
-              <div className="p-4 border-b border-border/40 flex justify-between items-center">
+              <div className="p-4 border-b border-border/40">
                 <h3 className="font-semibold">Comments</h3>
-                {/* Close button for the comment section */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:bg-black/20"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowComments(false) // Close only the comment section
-                  }}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
               </div>
 
               <ScrollArea className="flex-1">
@@ -401,6 +471,75 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Insights Side - Instagram-like */}
+          {showInsights && (
+            <div className="w-80 h-full border-l border-border/40 bg-background/95 flex flex-col">
+              <div className="p-4 border-b border-border/40">
+                <h3 className="font-semibold">Insights</h3>
+              </div>
+
+              <Tabs defaultValue="viewers" className="w-full" onValueChange={setInsightsTab}>
+                <TabsList className="grid w-full grid-cols-2 bg-muted">
+                  <TabsTrigger value="viewers" className="data-[state=active]:bg-background">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Viewers ({story.views})
+                  </TabsTrigger>
+                  <TabsTrigger value="likes" className="data-[state=active]:bg-background">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Likes ({story.likes})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="viewers" className="p-0">
+                  <ScrollArea className="h-[calc(100vh-12rem)]">
+                    <div className="p-4 space-y-3">
+                      {story.viewers.map((viewer) => (
+                        <div key={viewer.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={viewer.avatar} alt={viewer.name} />
+                              <AvatarFallback>{viewer.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium">{viewer.name}</p>
+                              <p className="text-xs text-muted-foreground">{viewer.username}</p>
+                            </div>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{viewer.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="likes" className="p-0">
+                  <ScrollArea className="h-[calc(100vh-12rem)]">
+                    <div className="p-4 space-y-3">
+                      {story.likers.map((liker) => (
+                        <div key={liker.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={liker.avatar} alt={liker.name} />
+                              <AvatarFallback>{liker.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium">{liker.name}</p>
+                              <p className="text-xs text-muted-foreground">{liker.username}</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm" className="text-primary">
+                            <Users className="h-4 w-4 mr-1" />
+                            Follow
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </div>

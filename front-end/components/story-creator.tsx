@@ -5,11 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Image, Video, X } from "lucide-react"
+import { Image, Video, X, Globe, Users, Lock } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
-import { Cropper } from "react-cropper"
-import "cropperjs/dist/cropper.css"
-import type { ReactCropperElement } from "react-cropper"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface StoryCreatorProps {
   isOpen: boolean
@@ -20,18 +18,17 @@ interface StoryCreatorProps {
     media: string
     type: string
     username: string
+    privacy: string // Add privacy property
   }) => void
 }
 
 export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps) {
   const [title, setTitle] = useState("")
-  const [mediaPreview, setMediaPreview] = useState<string | undefined>(undefined)
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<"image" | "video">("image")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [username, setUsername] = useState("@coffeelover")
-  const [croppedImage, setCroppedImage] = useState<string | null>(null)
-  const cropperRef = useRef<ReactCropperElement>(null)
-
+  const [privacy, setPrivacy] = useState("public") // Add privacy state
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -45,45 +42,25 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
     reader.readAsDataURL(file)
   }
 
-  const handleCrop = () => {
-    const cropper = cropperRef.current?.cropper
-    if (!cropper) {
-      console.error("Cropper is not initialized")
-      return
-    }
-  
-    const croppedCanvas = cropper.getCroppedCanvas({
-      width: 1080, // 9:16 aspect ratio (1080x1920)
-      height: 1920,
-    })
-  
-    if (!croppedCanvas) {
-      console.error("Failed to crop the image")
-      return
-    }
-  
-    setCroppedImage(croppedCanvas.toDataURL("image/jpeg"))
-    setMediaPreview(undefined) // Hide the cropper after cropping
-  }
-
-
   const handleSubmit = () => {
-    if (!title || (!croppedImage && !mediaPreview)) return
+    if (!title || !mediaPreview) return
 
-    const finalMedia = croppedImage || mediaPreview
-
+    // In a real app, you would upload the file to a server
+    // For this demo, we'll just use the preview URL
     onAddStory({
       id: uuidv4(),
       title,
-      media: finalMedia!,
+      media: mediaPreview,
       type: mediaType,
       username: username,
+      privacy: privacy, // Include privacy in the story object
     })
 
+    // Reset form
     setTitle("")
-    setMediaPreview(undefined)
-    setCroppedImage(null)
+    setMediaPreview(null)
     setMediaType("image")
+    setPrivacy("public") // Reset privacy
   }
 
   return (
@@ -104,8 +81,39 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
             />
           </div>
 
+          {/* Add privacy selection dropdown */}
+          <div className="space-y-2">
+            <Label htmlFor="privacy">Privacy</Label>
+            <Select value={privacy} onValueChange={setPrivacy}>
+              <SelectTrigger id="privacy" className="w-full">
+                <SelectValue placeholder="Select privacy setting" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span>Public</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="friends">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>Friends Only</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="private">
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    <span>Private</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-4">
-            {!mediaPreview && !croppedImage ? (
+            {!mediaPreview ? (
+              // Upload section - shown when no media is selected
               <div
                 className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
@@ -124,61 +132,24 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
                   className="hidden"
                 />
               </div>
-            ) : mediaType === "image" && mediaPreview ? (
-              <div className="relative rounded-lg overflow-hidden">
-                <Cropper
-                  src={mediaPreview || undefined}
-                  style={{ height: 300, width: "100%" }}
-                  viewMode={1}
-                  aspectRatio={9 / 16}
-                  guides={true}
-                  ref={cropperRef}
-                />
-                <div className="flex justify-end gap-2 mt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setMediaPreview(undefined)
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = ""
-                      }
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCrop}>Crop</Button>
-                </div>
-              </div>
-            ) : croppedImage ? (
-              <div className="relative rounded-lg overflow-hidden">
-                <img
-                  src={croppedImage}
-                  alt="Cropped Preview"
-                  className="w-full h-auto max-h-[300px] object-contain"
-                />
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={() => {
-                    setCroppedImage(null)
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = ""
-                    }
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
             ) : (
+              // Preview section - shown when media is selected
               <div className="relative rounded-lg overflow-hidden">
-                <video src={mediaPreview} controls className="w-full h-auto max-h-[300px]" />
+                {mediaType === "image" ? (
+                  <img
+                    src={mediaPreview || "/placeholder.svg"}
+                    alt="Preview"
+                    className="w-full h-auto max-h-[300px] object-contain"
+                  />
+                ) : (
+                  <video src={mediaPreview} controls className="w-full h-auto max-h-[300px]" />
+                )}
                 <Button
                   variant="destructive"
                   size="icon"
                   className="absolute top-2 right-2"
                   onClick={() => {
-                    setMediaPreview(undefined)
+                    setMediaPreview(null)
                     if (fileInputRef.current) {
                       fileInputRef.current.value = ""
                     }
@@ -195,7 +166,7 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!title || (!croppedImage && !mediaPreview)}>
+          <Button onClick={handleSubmit} disabled={!title || !mediaPreview}>
             Post Story
           </Button>
         </div>

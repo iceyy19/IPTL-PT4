@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Input } from "@/components/ui/input"
@@ -144,6 +145,51 @@ const mockAllUsers = [
 
 // Update the FriendsPage component to include the search dialog
 export default function FriendsPage() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const router = useRouter();
+  
+    useEffect(() => {
+      const validateSession = async () => {
+        const sessionId = localStorage.getItem("sessionId");
+    
+        if (!sessionId) {
+          console.log("No session found, redirecting to login...");
+          router.push("/login");
+          return;
+        }
+    
+        try {
+          const response = await fetch("/api/validate-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ sessionId }),
+          });
+    
+          if (response.ok) {
+            console.log("Session is valid");
+            setIsAuthenticated(true);
+          } else {
+            console.error("Invalid session, redirecting to login...");
+            localStorage.removeItem("sessionId");
+            router.push("/login");
+          }
+        } catch (error) {
+          console.error("Error validating session:", error);
+          localStorage.removeItem("sessionId");
+          router.push("/login");
+        }
+      };
+    
+      validateSession();
+    }, [router]);
+    
+    if (!isAuthenticated) {
+        // Redirecting or showing a fallback if the user is not authenticated
+        return null; // Prevent rendering if the user is not authenticated
+    }
+
   const [searchQuery, setSearchQuery] = useState("")
   const [friends, setFriends] = useState(mockFriends)
   const [friendRequests, setFriendRequests] = useState(mockFriendRequests)
