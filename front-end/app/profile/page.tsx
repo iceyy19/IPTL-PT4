@@ -6,6 +6,8 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Grid, Bookmark, EyeOff } from "lucide-react"
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUser } from "@/context/UserContext";
 
 // Import our components
 import { ProfileHeader } from "@/components/profile/profile-header"
@@ -55,24 +57,6 @@ interface SavedPost {
   date: string
   privacy: string
   edited?: boolean
-}
-
-// Mock data for user profile
-const userProfileData = {
-  name: "Coffee Lover",
-  username: "@coffeelover",
-  bio: "Coffee enthusiast | Barista in training | Exploring the world one cup at a time ☕",
-  location: "Seattle, WA",
-  birthday: "January 15, 1990",
-  website: "coffeelover.com",
-  joinedDate: "Joined March 2020",
-  profileImage: "/images/avatar.jpg",
-  coverImage: "/images/coffee-banner.jpg",
-  stats: {
-    posts: 42,
-    followers: 1024,
-    following: 256,
-  },
 }
 
 // Update the mock data to include a hidden field and privacy setting for stories
@@ -242,15 +226,36 @@ const savedPosts: SavedPost[] = [
   },
 ]
 
-export default function ProfilePage() {
 
-  
-      const [isAuthenticated, setIsAuthenticated] = useState(false);
-      const router = useRouter();
-    
+export default function ProfilePage() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const router = useRouter();  
+    const { username } = useUser();
+    const { profile, loading, error } = useUserProfile(username);
+    const [activeTab, setActiveTab] = useState("posts") 
+    const [stories, setStories] = useState(userStories)
+    const [posts, setPosts] = useState(userPosts)
+    const [savedPostsList, setSavedPostsList] = useState(savedPosts)
+    const [userProfile, setUserProfile] = useState(profile || {
+        name: "Guest",
+        username: "guest",
+        bio: "Welcome to my profile!",
+        location: "Unknown",
+        birthday: "N/A",
+        website: "N/A",
+        joinedDate: "N/A",
+        profileImage: "/images/avatar.jpg",
+        coverImage: "/images/coffee-banner.jpg",
+        stats: {
+          posts: 0,
+          followers: 0,
+          following: 0,
+        },
+      });
+
       useEffect(() => {
         const validateSession = async () => {
-          const sessionId = localStorage.getItem("sessionId");
+        const sessionId = localStorage.getItem("sessionId");
       
           if (!sessionId) {
             console.log("No session found, redirecting to login...");
@@ -284,24 +289,33 @@ export default function ProfilePage() {
       
         validateSession();
       }, [router]);
-  
-      if (!isAuthenticated) {
-          // Redirecting or showing a fallback if the user is not authenticated
-          return null; // Prevent rendering if the user is not authenticated
+
+      useEffect(() => {
+        if (profile) {
+          setUserProfile(profile); // Update userProfile when profile is fetched
         }
+      }, [profile]);
   
-  const [activeTab, setActiveTab] = useState("posts")
-  const [userProfile, setUserProfile] = useState(userProfileData)
-  const [stories, setStories] = useState(userStories)
-  const [posts, setPosts] = useState(userPosts)
-  const [savedPostsList, setSavedPostsList] = useState(savedPosts)
+    if (!isAuthenticated) {
+        // Redirecting or showing a fallback if the user is not authenticated
+        return null; // Prevent rendering if the user is not authenticated
+    }
+
+    if (loading) {
+        return <div>Loading...</div>; // Show a loading state while fetching data
+        }
+        
+    if (error) {
+    return <div>Error: {error}</div>; // Show an error message if fetching fails
+    }
 
   return (
     <div className="min-h-screen bg-black">
-      <Header />
+    <Header /> 
       <main className="container mx-auto px-4 pb-20">
         {/* Profile Header Component */}
         <ProfileHeader userProfile={userProfile} setUserProfile={setUserProfile} />
+
 
         {/* Stories Section Component */}
         <StoriesSection stories={stories} setStories={setStories} userProfile={userProfile} />

@@ -11,11 +11,11 @@ import { Coffee, Eye, EyeOff } from "lucide-react"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: "",
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
+    birthday: "",
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -40,10 +40,6 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
-    }
-
     if (!formData.username.trim()) {
       newErrors.username = "Username is required"
     } else if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
@@ -54,6 +50,10 @@ export default function RegisterPage() {
       newErrors.email = "Email is required"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid"
+    }
+
+    if (!formData.birthday) {
+      newErrors.birthday = "Birthday is required";
     }
 
     if (!formData.password) {
@@ -84,7 +84,6 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name,
           username: formData.username,
           email: formData.email,
           password: formData.password,
@@ -97,6 +96,25 @@ export default function RegisterPage() {
         setErrors({ general: data.error || "Failed to register" });
         return;
       }
+
+    // Create the userDetails document
+    const userDetailsResponse = await fetch("/api/user-details", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: formData.username,
+        name: "",
+        bio: "", // Default bio
+        location: "", // Default location
+        birthday: formData.birthday, // Default birthday
+        website: "", // Default website
+      }),
+    });
+
+    if (!userDetailsResponse.ok) {
+      setErrors({ general: "Failed to create user details" });
+      return;
+    }
   
       // Redirect to login page after successful registration
       router.push("/login");
@@ -140,17 +158,6 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {errors.general && <p className="text-red-400 text-xs">{errors.general}</p>}
-            <div className="space-y-2">
-              <Input
-                type="text"
-                name="name"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={handleChange}
-                className={`h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 ${errors.name ? "border-red-500" : ""}`}
-              />
-              {errors.name && <p className="text-red-400 text-xs">{errors.name}</p>}
-            </div>
 
             <div className="space-y-2">
               <Input
@@ -174,6 +181,20 @@ export default function RegisterPage() {
                 className={`h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 ${errors.email ? "border-red-500" : ""}`}
               />
               {errors.email && <p className="text-red-400 text-xs">{errors.email}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Input
+                type="date"
+                name="birthday"
+                placeholder="Birthday"
+                value={formData.birthday}
+                onChange={handleChange}
+                className={`h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 ${
+                  errors.birthday ? "border-red-500" : ""
+                }`}
+              />
+              {errors.birthday && <p className="text-red-400 text-xs">{errors.birthday}</p>}
             </div>
 
             <div className="space-y-2 relative">

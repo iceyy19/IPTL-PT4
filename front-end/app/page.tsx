@@ -6,10 +6,12 @@ import { Header } from "@/components/header";
 import { StorySection } from "@/components/story-section";
 import { BlogSection } from "@/components/blog-section";
 import { Footer } from "@/components/footer";
+import { useUser } from "../context/UserContext";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+  const { username } = useUser();
 
   useEffect(() => {
     const validateSession = async () => {

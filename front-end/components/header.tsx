@@ -1,17 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation"; // Ensure this is inside the component
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Coffee, Menu, MessageSquare, User, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from "../context/UserContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
+
+// Define the type for the user state
+interface UserState {
+  name: string;
+  username: string;
+}
 
 export function Header() {
-  const router = useRouter(); // ✅ Move inside the component
+  const router = useRouter(); 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState({ name: "Coffee Lover", username: "@coffeelover" });
+  const { username } = useUser();
+  const { profile, loading, error } = useUserProfile(username);
+
+   // Dynamically update the user state with profile data
+   const [user, setUser] = useState<UserState>({
+    name: "Loading...",
+    username: "@" + (username || "guest"),
+  });
+
+  useEffect(() => {
+    if (profile && !loading && !error) {
+      setUser({
+        name: profile.name, // Use the name from the profile
+        username: "@" + profile.username,
+      });
+    }
+  }, [profile, loading, error]);
 
   const handleLogout = async () => {
     const sessionId = localStorage.getItem("sessionId");

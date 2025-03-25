@@ -160,7 +160,7 @@ export function ProfileHeader({ userProfile, setUserProfile }: ProfileHeaderProp
       <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-8">
         <div className="mb-4 md:mb-0">
           <h1 className="text-2xl font-bold text-white">{userProfile.name}</h1>
-          <p className="text-gray-400">{userProfile.username}</p>
+          <p className="text-gray-400">{"@"+userProfile.username}</p>
           <p className="text-white mt-4 max-w-md">{userProfile.bio}</p>
 
           <div className="flex flex-wrap gap-4 mt-4">
@@ -175,12 +175,24 @@ export function ProfileHeader({ userProfile, setUserProfile }: ProfileHeaderProp
               </a>
             </div>
             <div className="flex items-center text-gray-400">
-              <Calendar className="h-4 w-4 mr-1" />
-              <span className="text-sm">Born {userProfile.birthday}</span>
+            <Calendar className="h-4 w-4 mr-1" />
+            <span className="text-sm">
+                {"Born " + new Date(userProfile.birthday).toLocaleDateString("en-US", {
+                weekday: "long", // Include the day of the week
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                })}
+            </span>
             </div>
             <div className="flex items-center text-gray-400">
-              <Coffee className="h-4 w-4 mr-1" />
-              <span className="text-sm">{userProfile.joinedDate}</span>
+            <Coffee className="h-4 w-4 mr-1" />
+            <span className="text-sm">
+                {"Joined " + new Date(userProfile.joinedDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                })}
+            </span>
             </div>
           </div>
 

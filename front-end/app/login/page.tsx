@@ -7,8 +7,10 @@ import { signIn } from "next-auth/react" // Import signIn
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Coffee, Eye, EyeOff } from 'lucide-react'
+import { useUser } from "@/context/UserContext"; // Import the UserContext
 
 export default function LoginPage() {
+  const { setUsername } = useUser()
   const [credentials, setCredentials] = useState({
     emailOrUsername: "",
     password: "",
@@ -42,6 +44,7 @@ export default function LoginPage() {
   
       // Store the session in local storage or cookies
       localStorage.setItem("sessionId", data.sessionId);
+      setUsername(data.user.username);
   
       // Redirect to the home page or dashboard
       router.push("/");
