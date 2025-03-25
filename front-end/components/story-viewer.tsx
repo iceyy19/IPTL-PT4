@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Mock comments data
 const mockComments = {
-  "1": [
+  "67e2f5060f7c1de26e2cb066": [
     { id: "c1", username: "@coffee_lover", text: "This looks amazing! ☕", time: "5m ago" },
     { id: "c2", username: "@barista_pro", text: "Perfect crema on that espresso!", time: "12m ago" },
     { id: "c3", username: "@morning_brew", text: "Where is this coffee shop?", time: "30m ago" },
@@ -48,77 +48,95 @@ const mockComments = {
 
 interface StoryViewerProps {
   story: {
-    id: string;
-    title: string;
-    media: string;
-    type: string;
-    username: string;
-    privacy: string;
-    views: number;
+    id: string
+    title: string
+    media: string
+    type: string
+    username: string
+    privacy: string
+    views: number
     viewers: Array<{
-      id: string;
-      name: string;
-      username: string;
-      avatar: string;
-      time: string;
-    }>;
-    likes: number;
+      id: string
+      name: string
+      username: string
+      avatar: string
+      time: string
+    }>
+    likes: number
     likers: Array<{
-      id: string;
-      name: string;
-      username: string;
-      avatar: string;
-    }>;
-  };
+      id: string
+      name: string
+      username: string
+      avatar: string
+    }>
+    comments?: Array<{
+      id: string
+      username: string
+      text: string
+      time: string
+    }>
+  }
   stories: Array<{
-    id: string;
-    title: string;
-    media: string;
-    type: string;
-    username: string;
-    privacy: string;
-    views: number;
+    id: string
+    title: string
+    media: string
+    type: string
+    username: string
+    privacy: string
+    views: number
     viewers: Array<{
-      id: string;
-      name: string;
-      username: string;
-      avatar: string;
-      time: string;
-    }>;
-    likes: number;
+      id: string
+      name: string
+      username: string
+      avatar: string
+      time: string
+    }>
+    likes: number
     likers: Array<{
-      id: string;
-      name: string;
-      username: string;
-      avatar: string;
-    }>;
-  }>;
-  onClose: () => void;
+      id: string
+      name: string
+      username: string
+      avatar: string
+    }>
+    comments?: Array<{
+      id: string
+      username: string
+      text: string
+      time: string
+    }>
+  }>
+  onClose: () => void
   setViewingStory: (
     story: {
-      id: string;
-      title: string;
-      media: string;
-      type: string;
-      username: string;
-      privacy: string;
-      views: number;
+      id: string
+      title: string
+      media: string
+      type: string
+      username: string
+      privacy: string
+      views: number
       viewers: Array<{
-        id: string;
-        name: string;
-        username: string;
-        avatar: string;
-        time: string;
-      }>;
-      likes: number;
+        id: string
+        name: string
+        username: string
+        avatar: string
+        time: string
+      }>
+      likes: number
       likers: Array<{
-        id: string;
-        name: string;
-        username: string;
-        avatar: string;
-      }>;
-    } | null
-  ) => void;
+        id: string
+        name: string
+        username: string
+        avatar: string
+      }>
+      comments?: Array<{
+        id: string
+        username: string
+        text: string
+        time: string
+      }>
+    } | null,
+  ) => void
 }
 
 export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryViewerProps) {
@@ -131,13 +149,16 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hasLiked, setHasLiked] = useState(false)
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
+
+  // Get comments for current story or empty array if none exist
+  const [storyComments, setStoryComments] = useState(() => {
+    return story.comments || mockComments[story.id as keyof typeof mockComments] || []
+  })
 
   const currentIndex = stories.findIndex((s) => s.id === story.id)
   const hasNext = currentIndex < stories.length - 1
   const hasPrevious = currentIndex > 0
-
-  // Get comments for current story or empty array if none exist
-  const storyComments = mockComments[story.id as keyof typeof mockComments] || []
 
   const goToNextStory = () => {
     if (hasNext) {
@@ -174,6 +195,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   }
 
   const handleLike = () => {
+    setHasLiked(!hasLiked)
     // In a real app, you would send a like to the server
     console.log("Liked story:", story.id)
   }
@@ -181,9 +203,27 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   const handleComment = () => {
     if (!comment.trim()) return
 
+    // Create a new comment
+    const newComment = {
+      id: `new-${Date.now()}`,
+      username: "@current_user", // This would come from auth context in a real app
+      text: comment,
+      time: "Just now",
+    }
+
+    // Add the comment to the local state
+    setStoryComments([...storyComments, newComment])
+
+    // Clear the input
+    setComment("")
+
+    // Show comments panel if it's not already visible
+    if (!showComments) {
+      setShowComments(true)
+    }
+
     // In a real app, you would send the comment to the server
     console.log("Comment on story:", story.id, comment)
-    setComment("")
   }
 
   const toggleComments = (e: React.MouseEvent) => {
@@ -199,7 +239,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   }
 
   const startProgress = () => {
-    if (story.type === "image") {
+    if (story.type === "image" && isImageLoaded) {
       progressInterval.current = setInterval(() => {
         setProgress((prev) => {
           const newProgress = prev + 0.5
@@ -219,13 +259,17 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
     setProgress(0)
     setIsPaused(false)
     setShowInsights(false)
+    setShowComments(false)
+    setIsImageLoaded(false)
+
+    // Reset comments when story changes
+    setStoryComments(story.comments || mockComments[story.id as keyof typeof mockComments] || [])
+
     if (progressInterval.current) {
       clearInterval(progressInterval.current)
       progressInterval.current = null
     }
-    if (story.type === "image") {
-      startProgress()
-    }
+
     return () => {
       if (progressInterval.current) {
         clearInterval(progressInterval.current)
@@ -233,6 +277,13 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
       }
     }
   }, [story.id])
+
+  // Handle image load
+  const handleImageLoad = () => {
+    setIsImageLoaded(true)
+    // Start progress immediately when image loads
+    startProgress()
+  }
 
   // Handle video progress
   const handleVideoTimeUpdate = () => {
@@ -256,60 +307,67 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
       }}
     >
       <DialogContent
-        className={`p-0 h-[80vh] max-h-[80vh] overflow-hidden ${showComments || showInsights ? "max-w-5xl" : "max-w-3xl"}`}
+        className="p-0 overflow-hidden flex"
+        style={{
+          width: showComments || showInsights ? "800px" : "450px",
+          height: "90vh",
+          maxWidth: showComments || showInsights ? "800px" : "450px",
+          maxHeight: "90vh",
+        }}
       >
-        <div className="relative h-full w-full flex">
-          {/* Story Content Side */}
-          <div className="relative flex-1 h-full">
-            {/* Progress bar */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-muted z-10">
-              <div
-                className="h-full bg-primary transition-all duration-100 ease-linear"
-                style={{ width: `${progress}%` }}
-              />
+        {/* Story Content Side - Fixed width */}
+        <div className="relative w-[450px] h-full bg-black flex flex-col">
+          {/* Progress bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-muted z-10">
+            <div
+              className="h-full bg-primary transition-all duration-100 ease-linear"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* Story title */}
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+              <Heart className={`h-4 w-4 ${hasLiked ? "text-red-500 fill-red-500" : "text-primary"}`} />
             </div>
-
-            {/* Story title */}
-            <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <Heart className={`h-4 w-4 ${hasLiked ? "text-red-500 fill-red-500" : "text-primary"}`} />
-              </div>
-              <div>
-                <h3 className="text-white text-lg font-bold drop-shadow-md">{story.title}</h3>
-                <p className="text-white/70 text-sm drop-shadow-md">{story.username}</p>
-              </div>
+            <div>
+              <h3 className="text-white text-lg font-bold drop-shadow-md">{story.title}</h3>
+              <p className="text-white/70 text-sm drop-shadow-md">{story.username}</p>
             </div>
+          </div>
 
-            {/* Pause/Play button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-16 z-10 text-white hover:bg-black/20 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation()
-                togglePause()
-              }}
-            >
-              {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
-            </Button>
+          {/* Pause/Play button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-16 z-10 text-white hover:bg-black/20 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation()
+              togglePause()
+            }}
+          >
+            {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+          </Button>
 
-            {/* Close button for the entire story */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 z-10 text-white hover:bg-black/20"
-              onClick={onClose}
-            >
-              <X className="h-5 w-5" />
-            </Button>
+          {/* Close button for the entire story */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 z-10 text-white hover:bg-black/20"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
 
-            {/* Story content */}
-            <div className="h-full bg-black flex items-center justify-center" onClick={togglePause}>
+          {/* Story content - with fixed aspect ratio */}
+          <div className="flex-1 flex items-center justify-center" onClick={togglePause}>
+            <div className="relative w-full h-full flex items-center justify-center">
               {story.type === "image" ? (
                 <img
                   src={story.media || "/placeholder.svg"}
                   alt={story.title}
                   className="max-h-full max-w-full object-contain"
+                  onLoad={handleImageLoad}
                 />
               ) : (
                 <video
@@ -322,181 +380,183 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                 />
               )}
             </div>
+          </div>
 
-            {/* Navigation buttons */}
-            {hasPrevious && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-black/20 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  goToPreviousStory()
-                }}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-            )}
-
-            {hasNext && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-black/20 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  goToNextStory()
-                }}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            )}
-
-            {/* Reactions */}
-            <div className="absolute right-4 top-1/3 z-10 flex flex-col gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`rounded-full bg-black/20 ${hasLiked ? "text-red-500" : "text-white"} hover:bg-black/40`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleLike()
-                }}
-              >
-                <Heart className={`h-5 w-5 ${hasLiked ? "fill-red-500" : ""}`} />
-              </Button>
-            </div>
-
-            {/* Instagram-like swipe up for insights */}
-            <div
-              className="absolute bottom-20 left-0 right-0 flex justify-center z-10"
-              onClick={(e) => {
-                e.stopPropagation()
-                toggleInsights(e)
-              }}
-            >
-              <div className="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer">
-                <ArrowUp className="h-4 w-4 text-white" />
-                <span className="text-white text-sm">
-                  {story.views} {story.views === 1 ? "view" : "views"}
-                </span>
-              </div>
-            </div>
-
-            {/* Chat button - moved to bottom of right navigation */}
+          {/* Navigation buttons */}
+          {hasPrevious && (
             <Button
               variant="ghost"
               size="icon"
-              className={`absolute right-4 bottom-20 z-10 rounded-full ${showComments ? "bg-primary text-white" : "bg-black/20 text-white"} hover:bg-black/40`}
-              onClick={toggleComments}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-black/20 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation()
+                goToPreviousStory()
+              }}
             >
-              <MessageCircle className="h-5 w-5" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
+          )}
 
-            {/* Comment input section */}
-            <div
-              className="absolute bottom-4 left-4 right-4 z-10 flex items-center gap-2"
-              onClick={(e) => e.stopPropagation()}
+          {hasNext && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white hover:bg-black/20 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation()
+                goToNextStory()
+              }}
             >
-              <Input
-                id="comment-input"
-                placeholder="Add a comment..."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="bg-black/20 border-none text-white placeholder:text-white/70 focus-visible:ring-primary"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleComment()
-                  }
-                }}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-black/20"
-                onClick={handleComment}
-                disabled={!comment.trim()}
-              >
-                <Send className="h-5 w-5" />
-              </Button>
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          )}
+
+          {/* Reactions */}
+          <div className="absolute right-4 top-1/3 z-10 flex flex-col gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`rounded-full bg-black/20 ${hasLiked ? "text-red-500" : "text-white"} hover:bg-black/40`}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleLike()
+              }}
+            >
+              <Heart className={`h-5 w-5 ${hasLiked ? "fill-red-500" : ""}`} />
+            </Button>
+          </div>
+
+          {/* Instagram-like swipe up for insights */}
+          <div
+            className="absolute bottom-20 left-0 right-0 flex justify-center z-10"
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleInsights(e)
+            }}
+          >
+            <div className="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer">
+              <ArrowUp className="h-4 w-4 text-white" />
+              <span className="text-white text-sm">
+                {story.views} {story.views === 1 ? "view" : "views"}
+              </span>
             </div>
           </div>
 
-          {/* Comments Side */}
-          {showComments && (
-            <div className="w-80 h-full border-l border-border/40 bg-background/95 flex flex-col">
-              <div className="p-4 border-b border-border/40">
-                <h3 className="font-semibold">Comments</h3>
-              </div>
+          {/* Chat button - moved to bottom of right navigation */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`absolute right-4 bottom-20 z-10 rounded-full ${showComments ? "bg-primary text-white" : "bg-black/20 text-white"} hover:bg-black/40`}
+            onClick={toggleComments}
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
 
-              <ScrollArea className="flex-1">
-                {storyComments.length > 0 ? (
-                  <div className="p-4 space-y-4">
-                    {storyComments.map((comment) => (
-                      <div key={comment.id} className="flex gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>{comment.username.charAt(1).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center">
-                            <p className="text-sm font-medium">{comment.username}</p>
-                            <span className="text-xs text-muted-foreground">{comment.time}</span>
-                          </div>
-                          <p className="text-sm mt-1">{comment.text}</p>
+          {/* Comment input section */}
+          <div
+            className="absolute bottom-4 left-4 right-4 z-10 flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Input
+              id="comment-input"
+              placeholder="Add a comment..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="bg-black/20 border-none text-white placeholder:text-white/70 focus-visible:ring-primary"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleComment()
+                }
+              }}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-black/20"
+              onClick={handleComment}
+              disabled={!comment.trim()}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Comments Side */}
+        {showComments && (
+          <div className="w-[350px] h-full border-l border-border/40 bg-background/95 flex flex-col">
+            <div className="p-4 border-b border-border/40">
+              <h3 className="font-semibold">Comments</h3>
+            </div>
+
+            <ScrollArea className="flex-1">
+              {storyComments.length > 0 ? (
+                <div className="p-4 space-y-4">
+                  {storyComments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{comment.username.charAt(1).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm font-medium">{comment.username}</p>
+                          <span className="text-xs text-muted-foreground">{comment.time}</span>
                         </div>
+                        <p className="text-sm mt-1">{comment.text}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-sm text-muted-foreground">No comments yet</p>
-                  </div>
-                )}
-              </ScrollArea>
-
-              <div className="p-4 border-t border-border/40">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add a comment..."
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleComment()
-                      }
-                    }}
-                  />
-                  <Button size="icon" onClick={handleComment} disabled={!comment.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
+                    </div>
+                  ))}
                 </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-sm text-muted-foreground">No comments yet</p>
+                </div>
+              )}
+            </ScrollArea>
+
+            <div className="p-4 border-t border-border/40">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a comment..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleComment()
+                    }
+                  }}
+                />
+                <Button size="icon" onClick={handleComment} disabled={!comment.trim()}>
+                  <Send className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Insights Side - Instagram-like */}
-          {showInsights && (
-            <div className="w-80 h-full border-l border-border/40 bg-background/95 flex flex-col">
-              <div className="p-4 border-b border-border/40">
-                <h3 className="font-semibold">Insights</h3>
-              </div>
+        {/* Insights Side - Instagram-like */}
+        {showInsights && (
+          <div className="w-[350px] h-full border-l border-border/40 bg-background/95 flex flex-col">
+            <div className="p-4 border-b border-border/40">
+              <h3 className="font-semibold">Insights</h3>
+            </div>
 
-              <Tabs defaultValue="viewers" className="w-full" onValueChange={setInsightsTab}>
-                <TabsList className="grid w-full grid-cols-2 bg-muted">
-                  <TabsTrigger value="viewers" className="data-[state=active]:bg-background">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Viewers ({story.views})
-                  </TabsTrigger>
-                  <TabsTrigger value="likes" className="data-[state=active]:bg-background">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Likes ({story.likes})
-                  </TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="viewers" className="w-full" onValueChange={setInsightsTab}>
+              <TabsList className="grid w-full grid-cols-2 bg-muted">
+                <TabsTrigger value="viewers" className="data-[state=active]:bg-background">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Viewers ({story.views})
+                </TabsTrigger>
+                <TabsTrigger value="likes" className="data-[state=active]:bg-background">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Likes ({story.likes})
+                </TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="viewers" className="p-0">
-                  <ScrollArea className="h-[calc(100vh-12rem)]">
-                    <div className="p-4 space-y-3">
-                      {story.viewers.map((viewer) => (
+              <TabsContent value="viewers" className="p-0">
+                <ScrollArea className="h-[calc(100vh-12rem)]">
+                  <div className="p-4 space-y-3">
+                    {story.viewers && story.viewers.length > 0 ? (
+                      story.viewers.map((viewer) => (
                         <div key={viewer.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -510,15 +570,21 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                           </div>
                           <span className="text-xs text-muted-foreground">{viewer.time}</span>
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center h-32">
+                        <p className="text-sm text-muted-foreground">No viewers yet</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
 
-                <TabsContent value="likes" className="p-0">
-                  <ScrollArea className="h-[calc(100vh-12rem)]">
-                    <div className="p-4 space-y-3">
-                      {story.likers.map((liker) => (
+              <TabsContent value="likes" className="p-0">
+                <ScrollArea className="h-[calc(100vh-12rem)]">
+                  <div className="p-4 space-y-3">
+                    {story.likers && story.likers.length > 0 ? (
+                      story.likers.map((liker) => (
                         <div key={liker.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -535,15 +601,20 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                             Follow
                           </Button>
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-        </div>
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center h-32">
+                        <p className="text-sm text-muted-foreground">No likes yet</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )
 }
+

@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Image, Video, X, Globe, Users, Lock } from "lucide-react"
+import { LucideImage, Video, X, Globe, Users, Lock } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUser } from "../context/UserContext"
 
 interface StoryCreatorProps {
   isOpen: boolean
@@ -18,7 +19,7 @@ interface StoryCreatorProps {
     media: string
     type: string
     username: string
-    privacy: string // Add privacy property
+    privacy: string
   }) => void
 }
 
@@ -27,40 +28,111 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<"image" | "video">("image")
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [username, setUsername] = useState("@coffeelover")
-  const [privacy, setPrivacy] = useState("public") // Add privacy state
+  const [privacy, setPrivacy] = useState("public")
+  const { username } = useUser()
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  // Function to resize image to standard story dimensions
+  const resizeImage = (dataUrl: string, callback: (resizedDataUrl: string) => void) => {
+    // Use window.Image to explicitly reference the global Image constructor
+    const img = new window.Image()
+    img.onload = () => {
+      // Target dimensions for stories (9:16 aspect ratio like Instagram/Facebook)
+      const targetWidth = 1080
+      const targetHeight = 1920
+
+      // Create canvas with target dimensions
+      const canvas = document.createElement("canvas")
+      canvas.width = targetWidth
+      canvas.height = targetHeight
+      const ctx = canvas.getContext("2d")
+
+      if (ctx) {
+        // Fill background with black
+        ctx.fillStyle = "#000000"
+        ctx.fillRect(0, 0, targetWidth, targetHeight)
+
+        // Calculate dimensions to maintain aspect ratio
+        let newWidth, newHeight, offsetX, offsetY
+
+        const imgRatio = img.width / img.height
+        const targetRatio = targetWidth / targetHeight
+
+        if (imgRatio > targetRatio) {
+          // Image is wider than target ratio
+          newHeight = targetHeight
+          newWidth = newHeight * imgRatio
+          offsetX = (targetWidth - newWidth) / 2
+          offsetY = 0
+        } else {
+          // Image is taller than target ratio
+          newWidth = targetWidth
+          newHeight = newWidth / imgRatio
+          offsetX = 0
+          offsetY = (targetHeight - newHeight) / 2
+        }
+
+        // Draw image centered on canvas
+        ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight)
+
+        // Convert canvas to data URL
+        const resizedDataUrl = canvas.toDataURL("image/jpeg", 0.85)
+        callback(resizedDataUrl)
+      }
+    }
+    img.src = dataUrl
+  }
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    setIsProcessing(true)
     const reader = new FileReader()
     reader.onload = () => {
-      setMediaPreview(reader.result as string)
-      setMediaType(file.type.startsWith("video") ? "video" : "image")
+      const result = reader.result as string
+
+      if (file.type.startsWith("video")) {
+        setMediaPreview(result)
+        setMediaType("video")
+        setIsProcessing(false)
+      } else {
+        // Resize image to standard story dimensions
+        resizeImage(result, (resizedDataUrl) => {
+          setMediaPreview(resizedDataUrl)
+          setMediaType("image")
+          setIsProcessing(false)
+        })
+      }
     }
     reader.readAsDataURL(file)
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title || !mediaPreview) return
 
-    // In a real app, you would upload the file to a server
-    // For this demo, we'll just use the preview URL
-    onAddStory({
+    const newStory = {
       id: uuidv4(),
       title,
       media: mediaPreview,
       type: mediaType,
-      username: username,
-      privacy: privacy, // Include privacy in the story object
-    })
+      username: username || "@anonymous", // Provide a default if username is null
+      privacy,
+    }
 
-    // Reset form
-    setTitle("")
-    setMediaPreview(null)
-    setMediaType("image")
-    setPrivacy("public") // Reset privacy
+    try {
+      // For local development, just use the callback directly
+      onAddStory(newStory)
+
+      // Reset form
+      setTitle("")
+      setMediaPreview(null)
+      setMediaType("image")
+      setPrivacy("public")
+      onClose()
+    } catch (error) {
+      console.error("Error creating story:", error)
+    }
   }
 
   return (
@@ -119,11 +191,14 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
                 onClick={() => fileInputRef.current?.click()}
               >
                 {mediaType === "image" ? (
-                  <Image className="h-10 w-10 text-muted-foreground mb-2" />
+                  <LucideImage className="h-10 w-10 text-muted-foreground mb-2" />
                 ) : (
                   <Video className="h-10 w-10 text-muted-foreground mb-2" />
                 )}
                 <p className="text-sm text-muted-foreground text-center">Click to upload an image or video</p>
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  Images will be resized to fit story format (9:16 ratio)
+                </p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -134,16 +209,18 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
               </div>
             ) : (
               // Preview section - shown when media is selected
-              <div className="relative rounded-lg overflow-hidden">
-                {mediaType === "image" ? (
-                  <img
-                    src={mediaPreview || "/placeholder.svg"}
-                    alt="Preview"
-                    className="w-full h-auto max-h-[300px] object-contain"
-                  />
-                ) : (
-                  <video src={mediaPreview} controls className="w-full h-auto max-h-[300px]" />
-                )}
+              <div className="relative">
+                <div className="rounded-lg overflow-hidden bg-black aspect-[9/16] max-h-[300px]">
+                  {mediaType === "image" ? (
+                    <img
+                      src={mediaPreview || "/placeholder.svg"}
+                      alt="Preview"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <video src={mediaPreview} controls className="w-full h-full object-contain" />
+                  )}
+                </div>
                 <Button
                   variant="destructive"
                   size="icon"
@@ -159,6 +236,13 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
                 </Button>
               </div>
             )}
+
+            {isProcessing && (
+              <div className="flex items-center justify-center py-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <span className="ml-2 text-sm">Processing image...</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -166,7 +250,7 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!title || !mediaPreview}>
+          <Button onClick={handleSubmit} disabled={!title || !mediaPreview || isProcessing}>
             Post Story
           </Button>
         </div>
