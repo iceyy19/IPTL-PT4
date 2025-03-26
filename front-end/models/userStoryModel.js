@@ -19,7 +19,7 @@ const LikerSchema = new mongoose.Schema({
 
 // Schema for comments on a story
 const CommentSchema = new mongoose.Schema({
-  storyId: { type: mongoose.Schema.Types.ObjectId, ref: "UserStory", required: true },
+  storyId: { type: String, required: true }, 
   id: { type: String, required: true },
   username: { type: String, required: true },
   text: { type: String, required: true },

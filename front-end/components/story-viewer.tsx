@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import { v4 as uuidv4 } from 'uuid';
 import { useState, useEffect, useRef } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -22,29 +23,9 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-// Mock comments data
-const mockComments = {
-  "67e2f5060f7c1de26e2cb066": [
-    { id: "c1", username: "@coffee_lover", text: "This looks amazing! ☕", time: "5m ago" },
-    { id: "c2", username: "@barista_pro", text: "Perfect crema on that espresso!", time: "12m ago" },
-    { id: "c3", username: "@morning_brew", text: "Where is this coffee shop?", time: "30m ago" },
-  ],
-  "2": [
-    { id: "c4", username: "@latte_art", text: "Beautiful design!", time: "2m ago" },
-    { id: "c5", username: "@coffee_addict", text: "I need to learn how to do this", time: "15m ago" },
-  ],
-  "3": [
-    { id: "c6", username: "@cafe_hopper", text: "Love the ambiance!", time: "8m ago" },
-    { id: "c7", username: "@coffee_bean", text: "Is this in downtown?", time: "20m ago" },
-    { id: "c8", username: "@espresso_shot", text: "Perfect spot for working", time: "45m ago" },
-  ],
-  "4": [{ id: "c9", username: "@dark_roast", text: "Strong and bold, just how I like it", time: "3m ago" }],
-  "5": [
-    { id: "c10", username: "@coffee_grinder", text: "Fresh beans make all the difference", time: "7m ago" },
-    { id: "c11", username: "@pour_over", text: "What's your favorite roast?", time: "18m ago" },
-  ],
-}
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUser } from "../context/UserContext";
+import { formatTimeAgo } from "@/utils/timeFormatter"; // Import helper
 
 interface StoryViewerProps {
   story: {
@@ -139,6 +120,23 @@ interface StoryViewerProps {
   ) => void
 }
 
+interface UserProfile {
+  name: string;
+  username: string;
+  bio: string;
+  location: string;
+  birthday: string;
+  website: string;
+  joinedDate: string;
+  profileImage: string;
+  coverImage: string;
+  stats: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
+}
+
 export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryViewerProps) {
   const [progress, setProgress] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -148,13 +146,34 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   const [insightsTab, setInsightsTab] = useState("viewers")
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [hasLiked, setHasLiked] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [storyComments, setStoryComments] = useState<Array<{ id: string; username: string; text: string; time: string }>>([]);
+  const { username } = useUser();
+  const { profile, loading, error } = useUserProfile(username);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const avatar = profile || "/images/avatar.jpg"
+  
+  useEffect(() => {
+    if (profile) {
+      setUserProfile(profile);
+    }
+  }, [profile]);
 
-  // Get comments for current story or empty array if none exist
-  const [storyComments, setStoryComments] = useState(() => {
-    return story.comments || mockComments[story.id as keyof typeof mockComments] || []
-  })
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await fetch(`/api/stories/comments?storyId=${story.id}`);
+        if (!response.ok) throw new Error("Failed to fetch comments");
+  
+        const commentsData = await response.json();
+        setStoryComments(commentsData);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      }
+    };
+  
+    fetchComments();
+  }, [story.id]);
 
   const currentIndex = stories.findIndex((s) => s.id === story.id)
   const hasNext = currentIndex < stories.length - 1
@@ -194,37 +213,144 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
     }
   }
 
-  const handleLike = () => {
-    setHasLiked(!hasLiked)
-    // In a real app, you would send a like to the server
-    console.log("Liked story:", story.id)
+  const [storyViewers, setStoryViewers] = useState(story.viewers || []);
+  const [storyViews, setStoryViews] = useState(story.views || 0);
+
+  const [storyLikers, setStoryLikers] = useState(story.likers || []);
+  const [storyLikes, setStoryLikes] = useState(story.likes || 0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
+
+  useEffect(() => {
+  if (story && profile && !loading && !hasViewed) {
+    addViewToStory();
+    setHasViewed(true); // Prevent future duplicate calls
   }
+}, [story, profile, loading]);
 
-  const handleComment = () => {
-    if (!comment.trim()) return
-
-    // Create a new comment
-    const newComment = {
-      id: `new-${Date.now()}`,
-      username: "@current_user", // This would come from auth context in a real app
-      text: comment,
-      time: "Just now",
+  useEffect(() => {
+    if (userProfile) {
+      setHasLiked(storyLikers.some((liker) => liker.username === userProfile.username));
     }
-
-    // Add the comment to the local state
-    setStoryComments([...storyComments, newComment])
-
-    // Clear the input
-    setComment("")
-
-    // Show comments panel if it's not already visible
-    if (!showComments) {
-      setShowComments(true)
+  }, [storyLikers, userProfile]);
+  
+  const handleLike = async () => {
+    if (!userProfile) {
+      alert("You must be logged in to like a story.");
+      return;
     }
+  
+    try {
+      const response = await fetch(`/api/stories/like`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storyId: story.id,
+          userId: userProfile.username, // Use correct user ID
+          name: userProfile.name, // Correctly store the name
+          username: userProfile.username, // Store the correct username
+          avatar: userProfile.profileImage, // Use correct avatar
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to like/unlike story");
+      }
+  
+      const data = await response.json();
+  
+      // ✅ Update state to reflect new likers and like count
+      setStoryLikers(data.likers);
+      setStoryLikes(data.likes);
+      setHasLiked(data.liked);
+  
+    } catch (error) {
+      console.error("Error liking story:", error);
+      alert("Failed to like/unlike story. Please try again.");
+    }
+  };
 
-    // In a real app, you would send the comment to the server
-    console.log("Comment on story:", story.id, comment)
+  async function addViewToStory() {
+    try {
+      if (!profile || !story) {
+        console.warn("Profile or story is missing. Cannot update views.");
+        return;
+      }
+  
+      // Check if all fields exist before making the request
+      const requestData = {
+        storyId: story?.id,
+        id: username,
+        name: profile?.name,
+        username: username,
+        avatar: avatar,
+      };
+  
+      console.log("📤 Sending data to API:", requestData);
+  
+      const res = await fetch(`/api/stories/view`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+  
+      const data = await res.json();
+      console.log("📥 Response from API:", data);
+      setStoryViews((prev) => prev + 1);
+  
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update views");
+      }
+    } catch (error) {
+      console.error("Error updating story views:", error);
+    }
   }
+  
+  
+  const handleComment = async () => {
+    if (!comment.trim()) return;
+    if (!userProfile || !userProfile.username) {
+      alert("You must be logged in to comment.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`/api/stories/comments`, { // ✅ Ensure correct path
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storyId: story.id,
+          id: uuidv4(),
+          username: userProfile.username,
+          text: comment,
+          time: new Date().toISOString(),
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to add comment");
+      }
+  
+      const savedComment = await response.json();
+      setStoryComments((prevComments) => [...prevComments, savedComment]);
+      setComment("");
+  
+      if (!showComments) {
+        setShowComments(true);
+      }
+  
+      console.log("Comment successfully saved:", savedComment);
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      alert("Failed to add comment. Please try again.");
+    }
+  };
+  
+  
 
   const toggleComments = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -263,7 +389,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
     setIsImageLoaded(false)
 
     // Reset comments when story changes
-    setStoryComments(story.comments || mockComments[story.id as keyof typeof mockComments] || [])
+    setStoryComments(story.comments || [])
 
     if (progressInterval.current) {
       clearInterval(progressInterval.current)
@@ -277,6 +403,28 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
       }
     }
   }, [story.id])
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const response = await fetch(`/api/stories/insights?storyId=${story.id}`);
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch insights");
+        }
+  
+        const data = await response.json();
+        setStoryViewers(data.viewers);
+        setStoryLikers(data.likers);
+        setStoryViews(data.views); // Update views count
+        setStoryLikes(data.likes);
+      } catch (error) {
+        console.error("Error fetching story insights:", error);
+      }
+    };
+  
+    fetchInsights();
+  }, [story.id]);
 
   // Handle image load
   const handleImageLoad = () => {
@@ -411,36 +559,35 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
             </Button>
           )}
 
-          {/* Reactions */}
-          <div className="absolute right-4 top-1/3 z-10 flex flex-col gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`rounded-full bg-black/20 ${hasLiked ? "text-red-500" : "text-white"} hover:bg-black/40`}
-              onClick={(e) => {
-                e.stopPropagation()
-                handleLike()
-              }}
-            >
-              <Heart className={`h-5 w-5 ${hasLiked ? "fill-red-500" : ""}`} />
-            </Button>
-          </div>
+            {/* Reactions */}
+            <div className="absolute right-4 top-1/3 z-10 flex flex-col gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`rounded-full bg-black/20 ${hasLiked ? "text-red-500" : "text-white"} hover:bg-black/40`}
+                onClick={handleLike}
+              >
+                <Heart className={`h-5 w-5 ${hasLiked ? "fill-red-500" : ""}`} />
+              </Button>
+            </div>
 
           {/* Instagram-like swipe up for insights */}
-          <div
-            className="absolute bottom-20 left-0 right-0 flex justify-center z-10"
-            onClick={(e) => {
-              e.stopPropagation()
-              toggleInsights(e)
-            }}
-          >
-            <div className="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer">
-              <ArrowUp className="h-4 w-4 text-white" />
-              <span className="text-white text-sm">
-                {story.views} {story.views === 1 ? "view" : "views"}
-              </span>
+          {userProfile?.username === story.username && (
+            <div
+              className="absolute bottom-20 left-0 right-0 flex justify-center z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleInsights(e);
+              }}
+            >
+              <div className="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 cursor-pointer">
+                <ArrowUp className="h-4 w-4 text-white" />
+                <span className="text-white text-sm">
+                  {story.views} {story.views === 1 ? "view" : "views"}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Chat button - moved to bottom of right navigation */}
           <Button
@@ -494,12 +641,12 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                   {storyComments.map((comment) => (
                     <div key={comment.id} className="flex gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback>{comment.username.charAt(1).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>{comment.username.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <p className="text-sm font-medium">{comment.username}</p>
-                          <span className="text-xs text-muted-foreground">{comment.time}</span>
+                          <p className="text-sm font-medium">{"@"+comment.username}</p>
+                          <span className="text-xs text-muted-foreground">{formatTimeAgo(comment.time)}</span>
                         </div>
                         <p className="text-sm mt-1">{comment.text}</p>
                       </div>
@@ -534,7 +681,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
         )}
 
         {/* Insights Side - Instagram-like */}
-        {showInsights && (
+        {showInsights && userProfile?.username === story.username && (
           <div className="w-[350px] h-full border-l border-border/40 bg-background/95 flex flex-col">
             <div className="p-4 border-b border-border/40">
               <h3 className="font-semibold">Insights</h3>
@@ -544,19 +691,19 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
               <TabsList className="grid w-full grid-cols-2 bg-muted">
                 <TabsTrigger value="viewers" className="data-[state=active]:bg-background">
                   <Eye className="h-4 w-4 mr-2" />
-                  Viewers ({story.views})
+                  Viewers ({storyViews}) {/* ✅ Now updates dynamically */}
                 </TabsTrigger>
                 <TabsTrigger value="likes" className="data-[state=active]:bg-background">
                   <Heart className="h-4 w-4 mr-2" />
-                  Likes ({story.likes})
+                  Likes ({storyLikes}) {/* ✅ This will now update in real-time */}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="viewers" className="p-0">
                 <ScrollArea className="h-[calc(100vh-12rem)]">
                   <div className="p-4 space-y-3">
-                    {story.viewers && story.viewers.length > 0 ? (
-                      story.viewers.map((viewer) => (
+                    {storyViewers.length > 0 ? (
+                      storyViewers.map((viewer) => (
                         <div key={viewer.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -565,10 +712,10 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                             </Avatar>
                             <div>
                               <p className="text-sm font-medium">{viewer.name}</p>
-                              <p className="text-xs text-muted-foreground">{viewer.username}</p>
+                              <p className="text-xs text-muted-foreground">{"@"+viewer.username}</p>
                             </div>
                           </div>
-                          <span className="text-xs text-muted-foreground">{viewer.time}</span>
+                          <span className="text-xs text-muted-foreground">{formatTimeAgo(viewer.time)}</span>
                         </div>
                       ))
                     ) : (
@@ -583,8 +730,8 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
               <TabsContent value="likes" className="p-0">
                 <ScrollArea className="h-[calc(100vh-12rem)]">
                   <div className="p-4 space-y-3">
-                    {story.likers && story.likers.length > 0 ? (
-                      story.likers.map((liker) => (
+                    {storyLikers.length > 0 ? (
+                      storyLikers.map((liker) => (
                         <div key={liker.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
@@ -593,13 +740,15 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
                             </Avatar>
                             <div>
                               <p className="text-sm font-medium">{liker.name}</p>
-                              <p className="text-xs text-muted-foreground">{liker.username}</p>
+                              <p className="text-xs text-muted-foreground">{"@"+liker.username}</p>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" className="text-primary">
-                            <Users className="h-4 w-4 mr-1" />
-                            Follow
-                          </Button>
+                          {userProfile && liker.username !== userProfile.username && (
+                            <Button variant="ghost" size="sm" className="text-primary">
+                              <Users className="h-4 w-4 mr-1" />
+                              Follow
+                            </Button>
+                          )}
                         </div>
                       ))
                     ) : (

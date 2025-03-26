@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "../context/UserContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
+
 // Define the type for the user state
 interface UserState {
   name: string;
