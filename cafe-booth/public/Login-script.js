@@ -1,5 +1,12 @@
+document.addEventListener("keydown", (event) => {
+    if (event.altKey && event.key === "0") { // Detects Alt + 0 key press
+        alert("Admin access granted!");
+        window.location.href = "/admin/dashboard"; // Redirects to admin dashboard, "/admin/dashboard" is still a subject to change, depending on the actual admin dashboard name and path
+    }
+});
+
 async function loginUser() {
-    const email = document.getElementById("loginUsername").value; // Change from 'username' to 'email'
+    const email = document.getElementById("loginUsername").value;
     const password = document.getElementById("loginPassword").value;
 
     if (!email || !password) {
@@ -11,7 +18,7 @@ async function loginUser() {
         const response = await fetch("http://localhost:5000/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }), // Changed from 'username' to 'email'
+            body: JSON.stringify({ email, password }),
             credentials: "include",
         });
 
@@ -19,7 +26,7 @@ async function loginUser() {
 
         if (response.ok) {
             alert("Login successful!");
-            window.location.href = "/dashboard";
+            window.location.href = "/dashboard"; // Regular user redirection
         } else {
             alert(data.message || "Invalid login credentials.");
         }
