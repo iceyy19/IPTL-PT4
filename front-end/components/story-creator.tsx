@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useRef, type ChangeEvent } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -9,6 +7,8 @@ import { LucideImage, Video, X, Globe, Users, Lock } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUser } from "../context/UserContext"
+import Cropper from "react-cropper"
+import "cropperjs/dist/cropper.css"
 
 interface StoryCreatorProps {
   isOpen: boolean
@@ -27,61 +27,12 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
   const [title, setTitle] = useState("")
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<"image" | "video">("image")
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [privacy, setPrivacy] = useState("public")
   const { username } = useUser()
   const [isProcessing, setIsProcessing] = useState(false)
-
-  // Function to resize image to standard story dimensions
-  const resizeImage = (dataUrl: string, callback: (resizedDataUrl: string) => void) => {
-    // Use window.Image to explicitly reference the global Image constructor
-    const img = new window.Image()
-    img.onload = () => {
-      // Target dimensions for stories (9:16 aspect ratio like Instagram/Facebook)
-      const targetWidth = 1080
-      const targetHeight = 1920
-
-      // Create canvas with target dimensions
-      const canvas = document.createElement("canvas")
-      canvas.width = targetWidth
-      canvas.height = targetHeight
-      const ctx = canvas.getContext("2d")
-
-      if (ctx) {
-        // Fill background with black
-        ctx.fillStyle = "#000000"
-        ctx.fillRect(0, 0, targetWidth, targetHeight)
-
-        // Calculate dimensions to maintain aspect ratio
-        let newWidth, newHeight, offsetX, offsetY
-
-        const imgRatio = img.width / img.height
-        const targetRatio = targetWidth / targetHeight
-
-        if (imgRatio > targetRatio) {
-          // Image is wider than target ratio
-          newHeight = targetHeight
-          newWidth = newHeight * imgRatio
-          offsetX = (targetWidth - newWidth) / 2
-          offsetY = 0
-        } else {
-          // Image is taller than target ratio
-          newWidth = targetWidth
-          newHeight = newWidth / imgRatio
-          offsetX = 0
-          offsetY = (targetHeight - newHeight) / 2
-        }
-
-        // Draw image centered on canvas
-        ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight)
-
-        // Convert canvas to data URL
-        const resizedDataUrl = canvas.toDataURL("image/jpeg", 0.85)
-        callback(resizedDataUrl)
-      }
-    }
-    img.src = dataUrl
-  }
+  const [cropData, setCropData] = useState<any>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cropperRef = useRef<any>(null)
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -97,15 +48,19 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
         setMediaType("video")
         setIsProcessing(false)
       } else {
-        // Resize image to standard story dimensions
-        resizeImage(result, (resizedDataUrl) => {
-          setMediaPreview(resizedDataUrl)
-          setMediaType("image")
-          setIsProcessing(false)
-        })
+        setMediaPreview(result)
+        setMediaType("image")
+        setIsProcessing(false)
       }
     }
     reader.readAsDataURL(file)
+  }
+
+  const handleCrop = () => {
+    if (cropperRef.current) {
+      const croppedImageUrl = cropperRef.current.getCroppedCanvas().toDataURL("image/jpeg")
+      setMediaPreview(croppedImageUrl)
+    }
   }
 
   const handleSubmit = async () => {
@@ -116,15 +71,12 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
       title,
       media: mediaPreview,
       type: mediaType,
-      username: username || "@anonymous", // Provide a default if username is null
+      username: username || "@anonymous", 
       privacy,
     }
 
     try {
-      // For local development, just use the callback directly
       onAddStory(newStory)
-
-      // Reset form
       setTitle("")
       setMediaPreview(null)
       setMediaType("image")
@@ -153,7 +105,6 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
             />
           </div>
 
-          {/* Add privacy selection dropdown */}
           <div className="space-y-2">
             <Label htmlFor="privacy">Privacy</Label>
             <Select value={privacy} onValueChange={setPrivacy}>
@@ -185,7 +136,6 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
 
           <div className="space-y-4">
             {!mediaPreview ? (
-              // Upload section - shown when no media is selected
               <div
                 className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg p-6 cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
@@ -196,9 +146,6 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
                   <Video className="h-10 w-10 text-muted-foreground mb-2" />
                 )}
                 <p className="text-sm text-muted-foreground text-center">Click to upload an image or video</p>
-                <p className="text-xs text-muted-foreground text-center mt-1">
-                  Images will be resized to fit story format (9:16 ratio)
-                </p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -208,19 +155,28 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
                 />
               </div>
             ) : (
-              // Preview section - shown when media is selected
               <div className="relative">
-                <div className="rounded-lg overflow-hidden bg-black aspect-[9/16] max-h-[300px]">
-                  {mediaType === "image" ? (
-                    <img
-                      src={mediaPreview || "/placeholder.svg"}
-                      alt="Preview"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <video src={mediaPreview} controls className="w-full h-full object-contain" />
-                  )}
-                </div>
+                {mediaType === "image" ? (
+                  <Cropper
+                    ref={cropperRef}
+                    src={mediaPreview}
+                    style={{ width: "100%", height: "300px" }}
+                    aspectRatio={9 / 16}
+                    guides={false}
+                    viewMode={1}
+                  />
+                ) : (
+                  <video src={mediaPreview} controls className="w-full h-full object-contain" />
+                )}
+                {mediaType === "image" && (
+                  <Button
+                    variant="outline"
+                    className="mt-2"
+                    onClick={handleCrop}
+                  >
+                    Crop Image
+                  </Button>
+                )}
                 <Button
                   variant="destructive"
                   size="icon"
@@ -258,4 +214,3 @@ export function StoryCreator({ isOpen, onClose, onAddStory }: StoryCreatorProps)
     </Dialog>
   )
 }
-

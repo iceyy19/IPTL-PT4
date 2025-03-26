@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -28,6 +28,7 @@ import {
   Globe,
   Users,
   Lock,
+  Loader2,
 } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -40,115 +41,137 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Post } from "@/types/post";
+import { useUser } from "../context/UserContext"
+import { useUserProfile } from "@/hooks/useUserProfile"
 
-// Mock data for blog posts with comments
-const initialPosts = [
-  {
-    id: "1",
-    name: "Emma Wilson",
-    username: "@emma_coffee",
-    content: "Just discovered this amazing coffee shop downtown. Their pour-over is absolutely divine! ☕️ #CoffeeLover",
-    image: "/images/coffee-post-1.jpg",
-    likes: 24,
-    comments: [
-      {
-        id: "c1",
-        name: "James Rodriguez",
-        username: "@coffee_james",
-        content: "I need to check this place out! Where is it located?",
-        timestamp: "1 hour ago",
-      },
-      {
-        id: "c2",
-        name: "Sophia Chen",
-        username: "@sophia_latte",
-        content: "Their pastries are amazing too! Try the almond croissant next time.",
-        timestamp: "2 hours ago",
-      },
-      {
-        id: "c3",
-        name: "Michael Brown",
-        username: "@mike_espresso",
-        content: "I've been going there for months. Best coffee in town!",
-        timestamp: "3 hours ago",
-      },
-      {
-        id: "c4",
-        name: "Olivia Taylor",
-        username: "@olivia_beans",
-        content: "Do they have good non-dairy milk options?",
-        timestamp: "4 hours ago",
-      },
-      {
-        id: "c5",
-        name: "Daniel Lee",
-        username: "@daniel_brew",
-        content: "Their cold brew is fantastic too. Perfect for summer days!",
-        timestamp: "5 hours ago",
-      },
-    ],
-    timestamp: "2 hours ago",
-    saved: false,
-    privacy: "public",
-    edited: false,
-  },
-  {
-    id: "2",
-    name: "James Rodriguez",
-    username: "@coffee_james",
-    content:
-      "Morning ritual: freshly ground beans, my favorite mug, and a moment of peace before the day begins. What's your coffee routine?",
-    image: "/images/coffee-post-2.jpg",
-    likes: 18,
-    comments: [
-      {
-        id: "c6",
-        name: "Emma Wilson",
-        username: "@emma_coffee",
-        content: "I love starting my day with a French press! So meditative.",
-        timestamp: "30 minutes ago",
-      },
-      {
-        id: "c7",
-        name: "Alex Martinez",
-        username: "@alex_barista",
-        content: "Pour-over with light roast beans is my go-to morning ritual.",
-        timestamp: "1 hour ago",
-      },
-      {
-        id: "c8",
-        name: "Jessica Kim",
-        username: "@jessica_mocha",
-        content: "I'm all about that espresso life! Quick and powerful.",
-        timestamp: "2 hours ago",
-      },
-    ],
-    timestamp: "5 hours ago",
-    saved: false,
-    privacy: "friends",
-    edited: false,
-  },
-]
+// Define Post and Comment types
+interface Comment {
+  id: string
+  name: string
+  username: string
+  content: string
+  timestamp: string | Date
+}
+
+interface Post {
+  id: string
+  name: string
+  username: string
+  content: string
+  image?: string | null
+  likes: number
+  comments: Comment[]
+  timestamp: string | Date
+  savedBy?: string[]
+  privacy: "public" | "friends" | "private"
+  edited: boolean
+  _id?: string // MongoDB ID
+}
 
 export function BlogSection() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [name, setName] = useState("")
+  const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [content, setContent] = useState("")
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [username, setUsername] = useState("@coffeelover")
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({})
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [currentSharingPost, setCurrentSharingPost] = useState<string | null>(null)
   const [newComment, setNewComment] = useState<Record<string, string>>({})
   const [copySuccess, setCopySuccess] = useState(false)
-  const [postPrivacy, setPostPrivacy] = useState("public")
+  const [postPrivacy, setPostPrivacy] = useState<"public" | "friends" | "private">("public")
   const [isEditPostOpen, setIsEditPostOpen] = useState(false)
-  const [currentEditingPost, setCurrentEditingPost] = useState<any>(null)
+  const [currentEditingPost, setCurrentEditingPost] = useState<Post | null>(null)
   const [editedPostContent, setEditedPostContent] = useState("")
-  const [editedPostPrivacy, setEditedPostPrivacy] = useState("")
-  const [editedStatus, setEditedStatus] = useState(false)
+  const [editedPostPrivacy, setEditedPostPrivacy] = useState<"public" | "friends" | "private">("public")
+  const [submitting, setSubmitting] = useState(false)
+  const { username } = useUser()
+  const { profile } = useUserProfile(username)
+  const [userProfile, setUserProfile] = useState(
+    profile || {
+      name: "Guest",
+      username: "guest",
+      bio: "Welcome to my profile!",
+      location: "Unknown",
+      birthday: "N/A",
+      website: "N/A",
+      joinedDate: "N/A",
+      profileImage: "/images/avatar.jpg",
+      coverImage: "/images/coffee-banner.jpg",
+      stats: {
+        posts: 0,
+        followers: 0,
+        following: 0,
+      },
+    },
+  )
+
+  useEffect(() => {
+    if (profile) {
+      setUserProfile(profile) // Update userProfile when profile is fetched
+    }
+  }, [profile])
+
+  // Fetch posts from API
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch("/api/posts")
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch posts: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        // Transform data to match our component's expected format
+        const formattedPosts: Post[] = data.map((post: any) => ({
+          id: post.id,
+          _id: post._id,
+          name: post.name,
+          username: post.username,
+          content: post.content,
+          image: post.image || null,
+          likes: post.likes || 0,
+          comments: post.comments || [],
+          timestamp: formatTimestamp(post.timestamp),
+          privacy: post.privacy || "public",
+          edited: post.edited || false,
+          savedBy: post.savedBy || [],
+        }))
+
+        setPosts(formattedPosts)
+      } catch (err) {
+        console.error("Error fetching posts:", err)
+        setError(err instanceof Error ? err.message : "Failed to load posts")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPosts()
+  }, [])
+
+  // Format timestamp helper
+  const formatTimestamp = (timestamp: string | Date) => {
+    if (!timestamp) return "Just now"
+
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffMins < 1) return "Just now"
+    if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? "minute" : "minutes"} ago`
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`
+    if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? "day" : "days"} ago`
+
+    return date.toLocaleDateString()
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -161,48 +184,100 @@ export function BlogSection() {
     reader.readAsDataURL(file)
   }
 
-  const handlePostSubmit = () => {
-    if (!content.trim()) return
+  const handlePostSubmit = async () => {
+    if (!content.trim() || submitting) return
 
-    const newPost: Post = {
-      id: uuidv4(),
-      name: name.trim() || "Anonymous",
-      username: username.trim() || "@anonymous",
-      content,
-      image,
-      likes: 0,
-      comments: [],
-      timestamp: "Just now",
-      saved: false,
-      privacy: postPrivacy,
-      edited: false,
-    };
+    try {
+      setSubmitting(true)
 
-    setPosts([newPost, ...posts])
-    setName("")
-    setUsername("")
-    setContent("")
-    setImage(null)
-    setPostPrivacy("public")
-    setEditedStatus(false)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      const newPost = {
+        id: uuidv4(),
+        name: userProfile.name, // Fixed user name
+        username: username, // Fixed username
+        content,
+        image,
+        privacy: postPrivacy,
+      }
+
+      // Send post to API
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newPost),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to create post: ${response.status}`)
+      }
+
+      const savedPost = await response.json()
+
+      // Format the post for our UI
+      const formattedPost: Post = {
+        id: savedPost.post.id,
+        _id: savedPost.post._id,
+        name: savedPost.post.name,
+        username: savedPost.post.username,
+        content: savedPost.post.content,
+        image: savedPost.post.image || null,
+        likes: savedPost.post.likes || 0,
+        comments: savedPost.post.comments || [],
+        timestamp: formatTimestamp(savedPost.post.timestamp),
+        privacy: savedPost.post.privacy || "public",
+        edited: savedPost.post.edited || false,
+      }
+
+      // Add to local state
+      setPosts([formattedPost, ...posts])
+
+      // Reset form
+      setContent("")
+      setImage(null)
+      setPostPrivacy("public")
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+
+      toast({
+        title: "Post created",
+        description: "Your post has been successfully created.",
+      })
+    } catch (error) {
+      console.error("Error creating post:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create post. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSubmitting(false)
     }
-
-    toast({
-      title: "Post created",
-      description: "Your post has been successfully created.",
-    })
   }
 
   const toggleSavePost = (postId: string) => {
-    setPosts(posts.map((post) => (post.id === postId ? { ...post, saved: !post.saved } : post)))
+    // In a real app, you would call an API to save/unsave the post
+    // For now, we'll just update the UI
+    setPosts(
+      posts.map((post) => {
+        if (post.id === postId) {
+          const isSaved = post.savedBy?.includes(username)
+          return {
+            ...post,
+            savedBy: isSaved ? post.savedBy?.filter((u) => u !== username) || [] : [...(post.savedBy || []), username],
+          }
+        }
+        return post
+      }),
+    )
 
     const post = posts.find((p) => p.id === postId)
     if (post) {
+      const isSaved = post.savedBy?.includes(username)
       toast({
-        title: post.saved ? "Post removed from saved" : "Post saved",
-        description: post.saved
+        title: isSaved ? "Post removed from saved" : "Post saved",
+        description: isSaved
           ? "The post has been removed from your saved items."
           : "The post has been added to your saved items.",
       })
@@ -222,7 +297,7 @@ export function BlogSection() {
   }
 
   const handleCopyLink = () => {
-    const postUrl = `https://cafestory.com/post/${currentSharingPost}`
+    const postUrl = `${window.location.origin}/post/${currentSharingPost}`
     navigator.clipboard.writeText(postUrl)
     setCopySuccess(true)
 
@@ -240,7 +315,7 @@ export function BlogSection() {
     const post = posts.find((p) => p.id === currentSharingPost)
     if (!post) return
 
-    const postUrl = `https://cafestory.com/post/${currentSharingPost}`
+    const postUrl = `${window.location.origin}/post/${currentSharingPost}`
     let shareUrl = ""
 
     switch (platform) {
@@ -262,9 +337,11 @@ export function BlogSection() {
     setShareDialogOpen(false)
   }
 
-  const handleAddComment = (postId: string) => {
+  const handleAddComment = async (postId: string) => {
     if (!newComment[postId]?.trim()) return
 
+    // In a real app, you would call an API to add the comment
+    // For now, we'll just update the UI
     const comment = {
       id: uuidv4(),
       name: "Coffee Lover",
@@ -282,7 +359,7 @@ export function BlogSection() {
   }
 
   // Handle edit post
-  const handleEditPost = (post: any) => {
+  const handleEditPost = (post: Post) => {
     setCurrentEditingPost(post)
     setEditedPostContent(post.content)
     setEditedPostPrivacy(post.privacy)
@@ -290,36 +367,62 @@ export function BlogSection() {
   }
 
   // Save edited post
-  const saveEditedPost = () => {
-    if (!currentEditingPost) return
+  const saveEditedPost = async () => {
+    if (!currentEditingPost || submitting) return
 
-    setPosts(
-      posts.map((post) =>
-        post.id === currentEditingPost.id
-          ? {
-              ...post,
-              content: editedPostContent,
-              privacy: editedPostPrivacy,
-              edited: true,
-            }
-          : post,
-      ),
-    )
+    try {
+      setSubmitting(true)
 
-    setIsEditPostOpen(false)
-    toast({
-      title: "Post updated",
-      description: "Your post has been successfully updated.",
-    })
+      // In a real app, you would call an API to update the post
+      // For now, we'll just update the UI
+      setPosts(
+        posts.map((post) =>
+          post.id === currentEditingPost.id
+            ? {
+                ...post,
+                content: editedPostContent,
+                privacy: editedPostPrivacy,
+                edited: true,
+              }
+            : post,
+        ),
+      )
+
+      setIsEditPostOpen(false)
+      toast({
+        title: "Post updated",
+        description: "Your post has been successfully updated.",
+      })
+    } catch (error) {
+      console.error("Error updating post:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update post. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   // Delete post
-  const deletePost = (postId: string) => {
-    setPosts(posts.filter((post) => post.id !== postId))
-    toast({
-      title: "Post deleted",
-      description: "Your post has been permanently deleted.",
-    })
+  const deletePost = async (postId: string) => {
+    try {
+      // In a real app, you would call an API to delete the post
+      // For now, we'll just update the UI
+      setPosts(posts.filter((post) => post.id !== postId))
+      toast({
+        title: "Post deleted",
+        description: "Your post has been permanently deleted.",
+      })
+    } catch (error) {
+      console.error("Error deleting post:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete post. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   // Get privacy icon
@@ -336,8 +439,13 @@ export function BlogSection() {
     }
   }
 
+  // Check if a post is saved by the current user
+  const isPostSaved = (post: Post) => {
+    return post.savedBy?.includes(username) || false
+  }
+
   return (
-    <section className="py-8">
+    <section className="py-8 mx-auto" style={{ width: "75%" }}>
       <h2 className="text-2xl font-bold mb-6">Coffee Stories</h2>
 
       {/* Create Post Form */}
@@ -346,19 +454,15 @@ export function BlogSection() {
           <CardTitle className="text-lg">Share Your Coffee Story</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Your Name</Label>
-            <Input id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              placeholder="@username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+          <div className="flex items-center gap-3 mb-4">
+            <Avatar>
+              <AvatarImage src="/images/avatar.jpg" alt="Your Avatar" />
+              <AvatarFallback>CL</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{userProfile.name}</p>
+              <p className="text-xs text-muted-foreground">{"@" + username}</p>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -375,7 +479,10 @@ export function BlogSection() {
 
           <div className="space-y-2">
             <Label htmlFor="privacy">Privacy</Label>
-            <Select value={postPrivacy} onValueChange={setPostPrivacy}>
+            <Select
+              value={postPrivacy}
+              onValueChange={(value: "public" | "friends" | "private") => setPostPrivacy(value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select privacy setting" />
               </SelectTrigger>
@@ -420,11 +527,11 @@ export function BlogSection() {
             </div>
 
             {image && (
-              <div className="mt-2 relative rounded-md overflow-hidden">
+              <div className="w-full bg-muted">
                 <img
                   src={image || "/placeholder.svg"}
                   alt="Preview"
-                  className="w-full h-auto max-h-[200px] object-cover"
+                  className="w-full h-auto object-contain max-h-[400px]"
                 />
                 <Button
                   variant="destructive"
@@ -443,15 +550,30 @@ export function BlogSection() {
             )}
           </div>
 
-          <Button onClick={handlePostSubmit} disabled={!content.trim()} className="w-full sm:w-auto">
-            Post Story
+          <Button onClick={handlePostSubmit} disabled={!content.trim() || submitting} className="w-full sm:w-auto">
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              "Post Story"
+            )}
           </Button>
         </CardContent>
       </Card>
 
       {/* Posts List */}
       <div className="space-y-6">
-        {posts.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <Card>
+            <CardContent className="py-6 text-center text-destructive">{error}</CardContent>
+          </Card>
+        ) : posts.length === 0 ? (
           <Card>
             <CardContent className="py-6 text-center text-muted-foreground">
               No posts yet. Be the first to share your coffee story!
@@ -471,7 +593,8 @@ export function BlogSection() {
                         <p className="font-medium">{post.name}</p>
                         <div className="flex items-center gap-1">
                           <p className="text-xs text-muted-foreground">
-                            {post.username} • {post.timestamp}
+                            {post.username} •{" "}
+                            {typeof post.timestamp === "string" ? post.timestamp : formatTimestamp(post.timestamp)}
                           </p>
                           <div className="bg-muted rounded-full p-0.5">{getPrivacyIcon(post.privacy)}</div>
                           {post.edited && <span className="text-xs text-muted-foreground">(edited)</span>}
@@ -489,7 +612,7 @@ export function BlogSection() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {post.username === "@coffeelover" && (
+                        {post.username === username && (
                           <>
                             <DropdownMenuItem onClick={() => handleEditPost(post)} className="cursor-pointer">
                               <Edit className="h-4 w-4 mr-2" />
@@ -546,11 +669,11 @@ export function BlogSection() {
                 </div>
 
                 {post.image && (
-                  <div className="w-full h-[300px] bg-muted">
+                  <div className="w-full bg-muted">
                     <img
                       src={post.image || "/placeholder.svg"}
                       alt={`Post by ${post.name}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto object-contain max-h-[500px]"
                     />
                   </div>
                 )}
@@ -581,11 +704,11 @@ export function BlogSection() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`flex items-center gap-1 ml-auto ${post.saved ? "text-primary" : ""}`}
+                    className={`flex items-center gap-1 ml-auto ${isPostSaved(post) ? "text-primary" : ""}`}
                     onClick={() => toggleSavePost(post.id)}
                   >
-                    <Bookmark className={`h-4 w-4 ${post.saved ? "fill-current" : ""}`} />
-                    <span>{post.saved ? "Saved" : "Save"}</span>
+                    <Bookmark className={`h-4 w-4 ${isPostSaved(post) ? "fill-current" : ""}`} />
+                    <span>{isPostSaved(post) ? "Saved" : "Save"}</span>
                   </Button>
                 </div>
 
@@ -635,7 +758,11 @@ export function BlogSection() {
                               </div>
                               <p className="text-sm mt-1">{comment.content}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">{comment.timestamp}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {typeof comment.timestamp === "string"
+                                ? comment.timestamp
+                                : formatTimestamp(comment.timestamp)}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -715,7 +842,11 @@ export function BlogSection() {
               </div>
 
               <div className="flex mt-2">
-                <Input readOnly value={`https://cafestory.com/post/${currentSharingPost}`} className="rounded-r-none" />
+                <Input
+                  readOnly
+                  value={`${window.location.origin}/post/${currentSharingPost}`}
+                  className="rounded-r-none"
+                />
                 <Button
                   className={`rounded-l-none ${copySuccess ? "bg-green-600 hover:bg-green-700" : "bg-primary hover:bg-primary/90"}`}
                   onClick={handleCopyLink}
@@ -763,7 +894,10 @@ export function BlogSection() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="post-privacy">Privacy</Label>
-              <Select value={editedPostPrivacy} onValueChange={setEditedPostPrivacy}>
+              <Select
+                value={editedPostPrivacy}
+                onValueChange={(value: "public" | "friends" | "private") => setEditedPostPrivacy(value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select privacy setting" />
                 </SelectTrigger>
@@ -797,9 +931,16 @@ export function BlogSection() {
             <Button
               onClick={saveEditedPost}
               className="bg-primary hover:bg-primary/90"
-              disabled={!editedPostContent.trim()}
+              disabled={!editedPostContent.trim() || submitting}
             >
-              Save Changes
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

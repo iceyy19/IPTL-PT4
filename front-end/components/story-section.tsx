@@ -129,7 +129,12 @@ export function StorySection() {
                 <Card
                   key={story._id || story.id}
                   className="flex-shrink-0 w-32 h-56 rounded-xl overflow-hidden cursor-pointer snap-start relative group"
-                  onClick={() => setViewingStory(story)}
+                  onClick={() => {
+                    setViewingStory(story); // Open the story
+                    setTimeout(() => {
+                      document.dispatchEvent(new Event("startStoryProgress")); // Trigger progress
+                    }, 100);
+                  }}
                 >
                   <div
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105"

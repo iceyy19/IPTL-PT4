@@ -147,6 +147,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   const progressInterval = useRef<NodeJS.Timeout | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const [isMediaLoading, setIsMediaLoading] = useState(true)
   const [storyComments, setStoryComments] = useState<Array<{ id: string; username: string; text: string; time: string }>>([]);
   const { username } = useUser();
   const { profile, loading, error } = useUserProfile(username);
@@ -156,6 +157,7 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   useEffect(() => {
     if (profile) {
       setUserProfile(profile);
+      startProgress();
     }
   }, [profile]);
 
@@ -349,8 +351,6 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
       alert("Failed to add comment. Please try again.");
     }
   };
-  
-  
 
   const toggleComments = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -365,13 +365,21 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   }
 
   const startProgress = () => {
+    // Clear any existing interval first
+    if (progressInterval.current) {
+      clearInterval(progressInterval.current)
+      progressInterval.current = null
+    }
+
     if (story.type === "image" && isImageLoaded) {
       progressInterval.current = setInterval(() => {
         setProgress((prev) => {
           const newProgress = prev + 0.5
           if (newProgress >= 100) {
-            clearInterval(progressInterval.current!)
-            progressInterval.current = null
+            if (progressInterval.current) {
+              clearInterval(progressInterval.current)
+              progressInterval.current = null
+            }
             setTimeout(goToNextStory, 300)
             return 100
           }
@@ -382,27 +390,55 @@ export function StoryViewer({ story, stories, onClose, setViewingStory }: StoryV
   }
 
   useEffect(() => {
-    setProgress(0)
-    setIsPaused(false)
-    setShowInsights(false)
-    setShowComments(false)
-    setIsImageLoaded(false)
-
+    // Reset state for new story
+    setProgress(0);
+    setIsPaused(false);
+    setShowInsights(false);
+    setShowComments(false);
+    setIsImageLoaded(false);
+    setIsMediaLoading(true);
     // Reset comments when story changes
-    setStoryComments(story.comments || [])
-
+    setStoryComments(story.comments || []);
+  
+    // Clean up any existing interval
     if (progressInterval.current) {
-      clearInterval(progressInterval.current)
-      progressInterval.current = null
+      clearInterval(progressInterval.current);
+      progressInterval.current = null;
     }
-
+  
+    // ✅ Start progress immediately for both image & video stories
+    if (story.type === "video") {
+      setIsMediaLoading(false);
+      if (videoRef.current) {
+        videoRef.current.play();
+      }
+      startProgress(); // ✅ Start progress immediately for videos
+    } else if (story.type === "image") {
+      const img = new Image();
+      img.onload = () => {
+        setIsImageLoaded(true);
+        setIsMediaLoading(false);
+        startProgress(); // ✅ Start progress when image loads
+      };
+      img.src = story.media;
+    } else {
+      startProgress(); // ✅ Start progress for any other media type
+    }
+  
+    // ✅ Ensuring progress starts as soon as the story is opened
+    setTimeout(() => {
+      startProgress();
+    }, 100); // Small delay ensures UI updates properly
+  
     return () => {
       if (progressInterval.current) {
-        clearInterval(progressInterval.current)
-        progressInterval.current = null
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
       }
-    }
-  }, [story.id])
+    };
+  }, [story.id]);
+  
+  
 
   useEffect(() => {
     const fetchInsights = async () => {
